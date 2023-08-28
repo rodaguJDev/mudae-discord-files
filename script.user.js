@@ -2,20 +2,19 @@
 // @name        Mudae Script - discord
 // @namespace   Violentmonkey Scripts
 // @match       https://discord.com/channels/*
-// @grant       none
+// @match       http://127.0.0.1:5500/*
+// @grant       GM_getResourceText
 // @version     1.0
 // @author      rodaguJ
 // @description Auto Claim desired mudae characters as soon as they show up
-// @require  http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js
-// @require  https://gist.github.com/raw/2625891/waitForKeyElements.js
-// @require  https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/guiElements.js
+// @require     http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js
+// @require     https://gist.github.com/raw/2625891/waitForKeyElements.js
+// @resource    guihtml https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui.html
+// @resource    guicss https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui-style.css
 // ==/UserScript==
 
 (async function() {
   'use strict';
-
-  console.log(await getPageText("https://gist.github.com/raw/2625891/waitForKeyElements.js"));
-  debugger
 
   const DEBUGGING_UI = window.location.href.includes("debugger.html")
   if (!DEBUGGING_UI && typeof Vencord === 'undefined') {
@@ -24,6 +23,8 @@
     return;
   }
 
+  const GUI_HTML = GM_getResourceText("guihtml")
+  const GUI_CSS = GM_getResourceText("guicss")
   const TOKEN = getDiscordToken();
   const CONFIG = {
       //? GUI Elements:
@@ -110,7 +111,7 @@
         this.loadGUI();
       }
 
-      async loadGUI() {
+      loadGUI() {
         /*
         TODO: Switch back from using a dynamic approach to adding the html when we select a category to always loading every category and hiding non used ones. Required because otherwise the console won't render
         TODO: Then, make each category actually function
@@ -119,7 +120,7 @@
         // Basic Loading
         this.guiElement = document.createElement("div");
         this.guiElement.className = "mudae-gui";
-        this.guiElement.innerHTML = await PageHandler.getPageText("https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui.html");
+        this.guiElement.innerHTML = GUI_HTML;
         document.body.appendChild(this.guiElement);
 
         // Declaring
@@ -155,7 +156,7 @@
             this.changeCategory(button, categoryDict[button.id]);
           });
         }
-        Logger.createLog("Console Logic Loaded");
+        this.addConsoleLog("~ [MUDAE] Console Logic Loaded");
       }
 
       configLogic() {
@@ -297,25 +298,8 @@
           }
         }
 
-        static async getPageText(url) {
-          const errorMsg = `Mudae Error: Could not load "${url}" text content`;
-          try {
-            const response = await fetch(url);
-
-            if (!response.ok) {
-              throw new Error(errorMsg);
-            }
-
-            return await response.text();
-          }
-          catch (error) {
-            throw new Error(`Fetch error loading ${url}: ${error}`);
-          }
-        }
-
-        static async loadCustomStyle() {
-          const url = "https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui-style.css";
-          const style = await this.getPageText(url);
+        static loadCustomStyle() {
+          const style = GUI_CSS;
           const currentStyle = document.head.querySelector("#mudae-custom-style")
 
           if (currentStyle) {
