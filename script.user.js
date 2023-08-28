@@ -308,6 +308,7 @@
           SentryHub.getScope().clear(); // Delete PII
         }*/
 
+
         static attemptRefresh() {
           const hourToMSCoefficient = 60*60*1000;
           const currentPageTime = document.timeline.currentTime
