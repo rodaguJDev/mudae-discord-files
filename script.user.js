@@ -178,6 +178,7 @@
       }
 
 
+      // GUI Controls
       closeGUI() {
           this.guiElement.remove();
           this.guiElement = undefined;
@@ -187,7 +188,7 @@
           this.guiElement.classList.toggle("mudae-minimized");
       }
 
-
+      // GUI Drag
       startGUIDrag(event) {
           if (event.target?.closest(".mudae-options")) {return;}
 
@@ -213,11 +214,11 @@
           }
       }
 
-
       stopGUIDrag() {
           this.guiDragging = false;
       }
 
+      // GUI Console
       addConsoleLog(log) {
         if (!this.guiElement) return;
 
@@ -303,12 +304,13 @@
           const currentStyle = document.head.querySelector("#mudae-custom-style")
 
           if (currentStyle) {
-            document.head.removeChild(currentStyle);
+            // document.head.removeChild(currentStyle);
+            currentStyle.innerHTML = style;
+            return;
           }
 
           const customStyle = document.createElement("style");
           customStyle.id = "mudae-custom-style";
-          customStyle.innerHTML = style;
           document.head.appendChild(customStyle);
         }
   }
