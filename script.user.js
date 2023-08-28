@@ -10,7 +10,7 @@
 // @require  https://gist.github.com/raw/2625891/waitForKeyElements.js
 // ==/UserScript==
 
-(function() {
+(async function() {
   'use strict';
 
   const DEBUGGING_UI = window.location.href.includes("debugger.html")
@@ -19,6 +19,7 @@
       "[MUDAE GUI] Install the VENCORD extension to prevent discord detection.");
     return;
   }
+
 
   const TOKEN = getDiscordToken();
   const CONFIG = {
@@ -97,60 +98,58 @@
 
   class MudaeGUI {
       constructor() {
-        const html = `
-        <section class=mudae-sidebar>
-        <div class=mudae-sidebar-content>
-        <span class=mudae-sidebar-header>MUDAE GUI</span>
-        <div class=mudae-gui-categories>
-        <button class=mudae-gui-category id=mudae-button-auto-claim>Auto Claim</button>
-        <button class=mudae-gui-category id=mudae-button-auto-command>Auto Command</button>
-        <button class=mudae-gui-category id=mudae-button-whitelist>Whitelist</button>
-        <button class=mudae-gui-category id=mudae-button-utilities>Utilities</button>
-        <button class="mudae-gui-category mudae-selected-button" id=mudae-button-logs>Logs</button>
-        </div>
-        </div>
-        </section>
-        <section class=mudae-categories>
-        <div class=mudae-category id=mudae-category-auto-claim>
-        <span class=mudae-category-header>Auto Claim</span>
-        <ul class=mudae-options></ul>
-        </div>
-        <div class=mudae-category id=mudae-category-auto-command>
-        <span class=mudae-category-header>Auto Command</span>
-        <ul class=mudae-options></ul>
-        </div>
-        <div class=mudae-category id=mudae-category-whitelist>
-        <span class=mudae-category-header>Whitelist</span>
-        <ul class=mudae-options></ul>
-        </div>
-        <div class=mudae-category id=mudae-category-utilities>
-        <span class=mudae-category-header>Utilities</span>
-        <ul class=mudae-options></ul>
-        </div>
-        <div class="mudae-category mudae-current-category" id=mudae-category-logs>
-        <span class=mudae-category-header>Logs</span>
-        <ul class=mudae-options>
-        <li class=mudae-option-row id=mudae-console>
-        <ul id=mudae-console-logs>
-        <li>~ [MUDAE] Console Element Loaded</li>
-        </ul>
-        </li>
-        </ul>
-        </div>
-        </section>
-        <div class=mudae-gui-controls>
-        <div class=mudae-minimize-button>
-        <div class="black-line minimize-line"></div>
-        </div>
-        <div class=mudae-close-button>
-        <div class="black-line line1"></div>
-        <div class="black-line line2"></div>
-        </div>
-        </div>
-        `
-        this.guiElement = document.createElement("div");
-        this.guiElement.className = "mudae-gui";
-        this.guiElement.innerHTML = html;
+        // const html = `
+        // <section class=mudae-sidebar>
+        // <div class=mudae-sidebar-content>
+        // <span class=mudae-sidebar-header>MUDAE GUI</span>
+        // <div class=mudae-gui-categories>
+        // <button class=mudae-gui-category id=mudae-button-auto-claim>Auto Claim</button>
+        // <button class=mudae-gui-category id=mudae-button-auto-command>Auto Command</button>
+        // <button class=mudae-gui-category id=mudae-button-whitelist>Whitelist</button>
+        // <button class=mudae-gui-category id=mudae-button-utilities>Utilities</button>
+        // <button class="mudae-gui-category mudae-selected-button" id=mudae-button-logs>Logs</button>
+        // </div>
+        // </div>
+        // </section>
+        // <section class=mudae-categories>
+        // <div class=mudae-category id=mudae-category-auto-claim>
+        // <span class=mudae-category-header>Auto Claim</span>
+        // <ul class=mudae-options></ul>
+        // </div>
+        // <div class=mudae-category id=mudae-category-auto-command>
+        // <span class=mudae-category-header>Auto Command</span>
+        // <ul class=mudae-options></ul>
+        // </div>
+        // <div class=mudae-category id=mudae-category-whitelist>
+        // <span class=mudae-category-header>Whitelist</span>
+        // <ul class=mudae-options></ul>
+        // </div>
+        // <div class=mudae-category id=mudae-category-utilities>
+        // <span class=mudae-category-header>Utilities</span>
+        // <ul class=mudae-options></ul>
+        // </div>
+        // <div class="mudae-category mudae-current-category" id=mudae-category-logs>
+        // <span class=mudae-category-header>Logs</span>
+        // <ul class=mudae-options>
+        // <li class=mudae-option-row id=mudae-console>
+        // <ul id=mudae-console-logs>
+        // <li>~ [MUDAE] Console Element Loaded</li>
+        // </ul>
+        // </li>
+        // </ul>
+        // </div>
+        // </section>
+        // <div class=mudae-gui-controls>
+        // <div class=mudae-minimize-button>
+        // <div class="black-line minimize-line"></div>
+        // </div>
+        // <div class=mudae-close-button>
+        // <div class="black-line line1"></div>
+        // <div class="black-line line2"></div>
+        // </div>
+        // </div>
+        // `
+        // this.guiElement.className = "mudae-gui";
 
         this.guiDragging = false;
         this.dragMaxXPos = 0;
@@ -158,16 +157,21 @@
         this.dragOffsetX = 0;
         this.dragOffsetY = 0;
 
-        document.body.appendChild(this.guiElement);
         this.loadGUI();
       }
 
-      loadGUI() {
+      async loadGUI() {
         /*
         TODO: Switch back from using a dynamic approach to adding the html when we select a category to always loading every category and hiding non used ones. Required because otherwise the console won't render
         TODO: Then, make each category actually function
         TODO: Then you can actually look at each function individually
         */
+        // Basic Loading
+        this.guiElement = document.createElement("div");
+        this.guiElement.innerHTML = await this.getGUIHTML();
+        document.body.appendChild(this.guiElement);
+
+        // Declaring
         const closeButton = this.guiElement.querySelector(".mudae-close-button");
         const minimizeButton = this.guiElement.querySelector(".mudae-minimize-button");
         const categoryList = this.guiElement.querySelector(".mudae-gui-categories");
@@ -220,21 +224,6 @@
         button.classList.add("mudae-selected-button");
       }
 
-      addConsoleLog(log) {
-        if (!this.guiElement) return;
-
-        const consoleLogs = this.guiElement?.querySelector("#mudae-console-logs");
-        const consoleLimit = 150;
-
-        if (consoleLogs.childNodes.length > consoleLimit) {
-            consoleLogs.removeChild(consoleLogs.childNodes[0]);
-        }
-
-        const logElement = document.createElement("li");
-        logElement.innerHTML = log;
-        consoleLogs.appendChild(logElement);
-        consoleLogs.parentElement.scrollTop = consoleLogs.parentElement.scrollHeight;
-      }
 
       closeGUI() {
           this.guiElement.remove();
@@ -244,6 +233,7 @@
       toggleGUI() {
           this.guiElement.classList.toggle("mudae-minimized");
       }
+
 
       startGUIDrag(event) {
           if (event.target?.closest(".mudae-options")) {return;}
@@ -270,8 +260,39 @@
           }
       }
 
+
       stopGUIDrag() {
           this.guiDragging = false;
+      }
+
+      async getGUIHTML() {
+        const url = "https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui.html";
+        return fetch(url)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`Error getting gui html! Status: ${response.status}`);
+            }
+            return response.text;
+          })
+          .catch(error => {
+            throw new Error(`Error getting gui html! Fetch Error. ${error}`);
+          })
+      }
+
+      addConsoleLog(log) {
+        if (!this.guiElement) return;
+
+        const consoleLogs = this.guiElement?.querySelector("#mudae-console-logs");
+        const consoleLimit = 150;
+
+        if (consoleLogs.childNodes.length > consoleLimit) {
+            consoleLogs.removeChild(consoleLogs.childNodes[0]);
+        }
+
+        const logElement = document.createElement("li");
+        logElement.innerHTML = log;
+        consoleLogs.appendChild(logElement);
+        consoleLogs.parentElement.scrollTop = consoleLogs.parentElement.scrollHeight;
       }
   }
 
@@ -334,10 +355,24 @@
           }
         }
 
-        static loadCustomStyle() {
-          const style = `
-.mudae-gui *{margin:0;padding:0;box-sizing:border-box;font-size:12pt}.mudae-gui{position:fixed;display:flex;user-select:none;width:600px;height:400px;z-index:1000;overflow:hidden;border-radius:10px;-webkit-border-radius:10px;-moz-border-radius:10px;-ms-border-radius:10px;-o-border-radius:10px}.mudae-sidebar{background-color:#e6e6e6;height:100%;width:25%}.mudae-sidebar-content{padding:6px 10px}.mudae-sidebar-header{font-family:'Franklin Gothic Medium','Arial Narrow',Arial,sans-serif;font-size:1.5em}#mudae-console,.mudae-category-header,.mudae-gui-category{font-family:Arial,Helvetica,sans-serif}.mudae-gui-categories{display:flex;margin-top:10px;flex-direction:column;gap:10px}.mudae-gui-category{font-size:1em;padding:5px;cursor:pointer;white-space:nowrap;background-color:#fff;border:0;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box}.mudae-gui-category:active{background-color:#ccc}.mudae-gui-categories .mudae-selected-button{border:3px solid #00f}.mudae-options::-webkit-scrollbar{width:10px}.mudae-options::-webkit-scrollbar-thumb{background-color:gray;border-radius:10px;-webkit-border-radius:10px;-moz-border-radius:10px;-ms-border-radius:10px;-o-border-radius:10px}.black-line{width:15px;height:2px;background-color:#000;position:absolute;top:50%;transform:translateY(-50%);-webkit-transform:translateY(-50%);-moz-transform:translateY(-50%);-ms-transform:translateY(-50%);-o-transform:translateY(-50%)}.mudae-gui-controls{position:absolute;top:5px;right:10px;display:flex;flex-direction:row;gap:10px}.mudae-close-button,.mudae-minimize-button{cursor:pointer;width:15px;height:15px}.line1,.line2{top:50%;transform:translateY(-50%) rotate(45deg);-webkit-transform:translateY(-50%) rotate(45deg);-moz-transform:translateY(-50%) rotate(45deg);-ms-transform:translateY(-50%) rotate(45deg);-o-transform:translateY(-50%) rotate(45deg)}.line2{transform:translateY(-50%) rotate(-45deg);-webkit-transform:translateY(-50%) rotate(-45deg);-moz-transform:translateY(-50%) rotate(-45deg);-ms-transform:translateY(-50%) rotate(-45deg);-o-transform:translateY(-50%) rotate(-45deg)}.mudae-minimized{transition:.1s linear;transform:translate(100vw,100vh) scale(0,0);-webkit-transform:translate(100vw,100vh) scale(0,0);-moz-transform:translate(100vw,100vh) scale(0,0);-ms-transform:translate(100vw,100vh) scale(0,0);-o-transform:translate(100vw,100vh) scale(0,0);-webkit-transition:.1s linear;-moz-transition:.1s linear;-ms-transition:.1s linear;-o-transition:.1s linear}.mudae-categories{flex:1}.mudae-category{display:none}.mudae-category-header{display:block;font-size:1.5em;font-weight:900;padding:10px}.mudae-current-category{height:100%;width:100%;background-color:#b3b3b3;display:flex;flex-direction:column}.mudae-options{flex:1;overflow-y:auto}#mudae-console{user-select:text;background-color:#fcfcfc;border:1px solid #000;border-radius:10px;width:calc(100% - 20px);min-height:100%;margin-left:10px;-webkit-border-radius:10px;-moz-border-radius:10px;-ms-border-radius:10px;-o-border-radius:10px}#mudae-console-logs{list-style:none}
-          `
+        static async getGUIStyle() {
+          const url = "https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui-style.css"
+          return fetch(url)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`Error Getting gui css: Response ${response.status}`)
+              }
+            })
+            .catch((error) => {
+              throw new Error(`Error getting gui html! Fetch Error. ${error}`);
+            })
+        }
+
+        static async loadCustomStyle() {
+//           const style = `
+// .mudae-gui *{margin:0;padding:0;box-sizing:border-box;font-size:12pt}.mudae-gui{position:fixed;display:flex;user-select:none;width:600px;height:400px;z-index:1000;overflow:hidden;border-radius:10px;-webkit-border-radius:10px;-moz-border-radius:10px;-ms-border-radius:10px;-o-border-radius:10px}.mudae-sidebar{background-color:#e6e6e6;height:100%;width:25%}.mudae-sidebar-content{padding:6px 10px}.mudae-sidebar-header{font-family:'Franklin Gothic Medium','Arial Narrow',Arial,sans-serif;font-size:1.5em}#mudae-console,.mudae-category-header,.mudae-gui-category{font-family:Arial,Helvetica,sans-serif}.mudae-gui-categories{display:flex;margin-top:10px;flex-direction:column;gap:10px}.mudae-gui-category{font-size:1em;padding:5px;cursor:pointer;white-space:nowrap;background-color:#fff;border:0;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box}.mudae-gui-category:active{background-color:#ccc}.mudae-gui-categories .mudae-selected-button{border:3px solid #00f}.mudae-options::-webkit-scrollbar{width:10px}.mudae-options::-webkit-scrollbar-thumb{background-color:gray;border-radius:10px;-webkit-border-radius:10px;-moz-border-radius:10px;-ms-border-radius:10px;-o-border-radius:10px}.black-line{width:15px;height:2px;background-color:#000;position:absolute;top:50%;transform:translateY(-50%);-webkit-transform:translateY(-50%);-moz-transform:translateY(-50%);-ms-transform:translateY(-50%);-o-transform:translateY(-50%)}.mudae-gui-controls{position:absolute;top:5px;right:10px;display:flex;flex-direction:row;gap:10px}.mudae-close-button,.mudae-minimize-button{cursor:pointer;width:15px;height:15px}.line1,.line2{top:50%;transform:translateY(-50%) rotate(45deg);-webkit-transform:translateY(-50%) rotate(45deg);-moz-transform:translateY(-50%) rotate(45deg);-ms-transform:translateY(-50%) rotate(45deg);-o-transform:translateY(-50%) rotate(45deg)}.line2{transform:translateY(-50%) rotate(-45deg);-webkit-transform:translateY(-50%) rotate(-45deg);-moz-transform:translateY(-50%) rotate(-45deg);-ms-transform:translateY(-50%) rotate(-45deg);-o-transform:translateY(-50%) rotate(-45deg)}.mudae-minimized{transition:.1s linear;transform:translate(100vw,100vh) scale(0,0);-webkit-transform:translate(100vw,100vh) scale(0,0);-moz-transform:translate(100vw,100vh) scale(0,0);-ms-transform:translate(100vw,100vh) scale(0,0);-o-transform:translate(100vw,100vh) scale(0,0);-webkit-transition:.1s linear;-moz-transition:.1s linear;-ms-transition:.1s linear;-o-transition:.1s linear}.mudae-categories{flex:1}.mudae-category{display:none}.mudae-category-header{display:block;font-size:1.5em;font-weight:900;padding:10px}.mudae-current-category{height:100%;width:100%;background-color:#b3b3b3;display:flex;flex-direction:column}.mudae-options{flex:1;overflow-y:auto}#mudae-console{user-select:text;background-color:#fcfcfc;border:1px solid #000;border-radius:10px;width:calc(100% - 20px);min-height:100%;margin-left:10px;-webkit-border-radius:10px;-moz-border-radius:10px;-ms-border-radius:10px;-o-border-radius:10px}#mudae-console-logs{list-style:none}
+//           `
+          const style = await this.getGUIStyle();
           const currentStyle = document.head.querySelector("#mudae-custom-style")
 
           if (currentStyle) {
@@ -537,7 +572,7 @@
   }
 
   // Before Messages Load
-  // PageHandler.noTrack(); No longer needed since now vencord is mandatory.
+  // const html = await PageHandler.getGUIHTML();
   const mudaegui = new MudaeGUI();
   const mudaeautoclaim = new MudaeAutoClaim();
   // const mudaeautomessage = new MudaeAutoMessage();
