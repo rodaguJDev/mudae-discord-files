@@ -20,7 +20,6 @@
     return;
   }
 
-
   const TOKEN = getDiscordToken();
   const CONFIG = {
       //? GUI Elements:
@@ -149,7 +148,6 @@
         // </div>
         // </div>
         // `
-        // this.guiElement.className = "mudae-gui";
 
         this.guiDragging = false;
         this.dragMaxXPos = 0;
@@ -168,7 +166,8 @@
         */
         // Basic Loading
         this.guiElement = document.createElement("div");
-        this.guiElement.innerHTML = await this.getGUIHTML();
+        this.guiElement.className = "mudae-gui";
+        this.guiElement.innerHTML = await PageHandler.getGUIHTML();
         document.body.appendChild(this.guiElement);
 
         // Declaring
@@ -265,20 +264,6 @@
           this.guiDragging = false;
       }
 
-      async getGUIHTML() {
-        const url = "https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui.html";
-        return fetch(url)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error(`Error getting gui html! Status: ${response.status}`);
-            }
-            return response.text;
-          })
-          .catch(error => {
-            throw new Error(`Error getting gui html! Fetch Error. ${error}`);
-          })
-      }
-
       addConsoleLog(log) {
         if (!this.guiElement) return;
 
@@ -362,8 +347,23 @@
               if (!response.ok) {
                 throw new Error(`Error Getting gui css: Response ${response.status}`)
               }
+              return response.text();
             })
             .catch((error) => {
+              throw new Error(`Error getting gui html! Fetch Error. ${error}`);
+            })
+        }
+
+        static async getGUIHTML() {
+          const url = "https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui.html";
+          return fetch(url)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`Error getting gui html! Status: ${response.status}`);
+              }
+              return response.text();
+            })
+            .catch(error => {
               throw new Error(`Error getting gui html! Fetch Error. ${error}`);
             })
         }
@@ -572,22 +572,22 @@
   }
 
   // Before Messages Load
-  // const html = await PageHandler.getGUIHTML();
+  setInterval(PageHandler.attemptRefresh, 1800); // temporary while we don't have mudaeautomessage
+  PageHandler.correctCurrentUrl();
+  PageHandler.loadCustomStyle();
   const mudaegui = new MudaeGUI();
   const mudaeautoclaim = new MudaeAutoClaim();
   // const mudaeautomessage = new MudaeAutoMessage();
 
-  PageHandler.correctCurrentUrl();
-  PageHandler.loadCustomStyle();
-  setInterval(PageHandler.attemptRefresh, 1800); // temporary while we don't have mudaeautomessage
   Logger.createLog("Console Logic Loaded");
-
-  const urlUpdateChecker = new MutationObserver(PageHandler.correctCurrentUrl);
-  const messageObserver = new MutationObserver(mudaeautoclaim.messageListener);
 
   if (DEBUGGING_UI) {
     return;
   }
+
+  const urlUpdateChecker = new MutationObserver(PageHandler.correctCurrentUrl);
+  const messageObserver = new MutationObserver(mudaeautoclaim.messageListener);
+
 
   // OnMessagesLoad
   waitForKeyElements("[class|='scrollerInner']", () => {
@@ -612,35 +612,32 @@
 
     })();
 
-    function getDiscordToken() {
-      try {
-        webpackChunkdiscord_app.push(
-          [
-            [''],
-            {},
-            e => {
-              m=[];
-              for(let c in e.c)
-              m.push(e.c[c])
-            }
-          ]
-          );
+function getDiscordToken() {
+  try {
+    webpackChunkdiscord_app.push(
+      [
+        [''],
+        {},
+        e => {
+          m=[];
+          for(let c in e.c)
+          m.push(e.c[c])
         }
-        catch (e) {
-          return false;
-        }
+      ]
+      );
+    }
+    catch (e) {
+      return false;
+    }
+    return m.find(m => m?.exports?.default?.getToken !== void 0)
+    .exports.default.getToken();
+  }
+function randomWithinRange(min, max) {
+  return Math.floor(Math.random()*(max-min+1)) + min;
+}
 
-        return m.find(m => m?.exports?.default?.getToken !== void 0)
-        .exports.default.getToken();
-      }
 
-      function randomWithinRange(min, max) {
-        return Math.floor(Math.random()*(max-min+1)) + min;
-      }
-
-
-
-      // TODO: Claim anything that is wished by someone (make it optional)
-      // TODO: create a "Series" wishlist filter so that if it is from a specific series it claims
-      // TODO: Finish the "GUI" element so you don't have to edit the code to modify configs
-      // TODO: Fix Indentation
+// TODO: Claim anything that is wished by someone (make it optional)
+// TODO: create a "Series" wishlist filter so that if it is from a specific series it claims
+// TODO: Finish the "GUI" element so you don't have to edit the code to modify configs
+// TODO: Fix Indentation
