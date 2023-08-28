@@ -8,10 +8,14 @@
 // @description Auto Claim desired mudae characters as soon as they show up
 // @require  http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js
 // @require  https://gist.github.com/raw/2625891/waitForKeyElements.js
+// @require  https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/guiElements.js
 // ==/UserScript==
 
 (async function() {
   'use strict';
+
+  console.log(await getPageText("https://gist.github.com/raw/2625891/waitForKeyElements.js"));
+  debugger
 
   const DEBUGGING_UI = window.location.href.includes("debugger.html")
   if (!DEBUGGING_UI && typeof Vencord === 'undefined') {
