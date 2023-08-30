@@ -237,6 +237,7 @@
       }
 
       const consoleLogs = this.guiElement?.querySelector("#mudae-console-logs");
+      const consoleOption = consoleLogs.parentNode.parentNode
       const consoleLimit = 150;
 
       if (!consoleLogs) {
@@ -256,7 +257,7 @@
       }
       consoleLogs.appendChild(logElement);
 
-      consoleLogs.parentElement.scrollTop = consoleLogs.parentElement.scrollHeight; //! THIS MAY NOT BE WORKING
+      consoleOption.scrollTo(0, consoleOption.scrollHeight)
     }
 
     createLog(msg) {
@@ -379,7 +380,7 @@
             mudaelogs.createDebugLog(`Message reaction sent with ${response.status}`)
           })
         }
-  }Mudae
+  }
 
   class MudaeWhitelist {
     // Whitelist Functions here
