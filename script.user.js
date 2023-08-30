@@ -3,17 +3,17 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://discord.com/channels/*
 // @match       http://127.0.0.1:5500/*
-// @grant       GM_getResourceText
 // @version     1.0
 // @author      rodaguJ
 // @description Auto Claim desired mudae characters as soon as they show up
+// @grant       GM.getResourceText
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js
 // @require     https://gist.github.com/raw/2625891/waitForKeyElements.js
 // @resource    guihtml https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui.html
 // @resource    guicss https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui-style.css
 // ==/UserScript==
 
-(async function() {
+(function() {
   'use strict';
 
   const DEBUGGING_UI = window.location.href.includes("debugger.html")
@@ -23,8 +23,13 @@
     return;
   }
 
-  const GUI_HTML = GM_getResourceText("guihtml")
-  const GUI_CSS = GM_getResourceText("guicss")
+  if (typeof(GM.getResourceText) === "undefined") {
+    alert("[MUDAE GUI] We could not find the function 'GM.getResourceText', please run the script with ViolentMonkey and grant GM.getResourceText").
+    return;
+  }
+
+  const GUI_HTML = GM.getResourceText("guihtml")
+  const GUI_CSS = GM.getResourceText("guicss")
   const TOKEN = getDiscordToken();
   const CONFIG = {
       //? GUI Elements:
@@ -74,7 +79,6 @@
       "jonathan joestar",
       "paimon",
       "sans",
-      "josuke higashikata",
       "mari",
       "boingo",
       "kyoujurou rengoku",
@@ -102,28 +106,31 @@
 
   class MudaeGUI {
       constructor() {
-        this.guiDragging = false;
-        this.dragMaxXPos = 0;
-        this.dragMaxYPos = 0;
-        this.dragOffsetX = 0;
-        this.dragOffsetY = 0;
-
-        this.loadGUI();
-      }
-
-      loadGUI() {
+        // this.guiDragging = false;
+        // this.dragMaxXPos = 0;
+        // this.dragMaxYPos = 0;
+        // this.dragOffsetX = 0;
+        // this.dragOffsetY = 0;
         /*
-        TODO: Switch back from using a dynamic approach to adding the html when we select a category to always loading every category and hiding non used ones. Required because otherwise the console won't render
-        TODO: Then, make each category actually function
+        TODO: Make the constructor create a Logger class, which will be used for the console. also rename it to MudaeLogs
+        TODO: Implement a whitelist system using localstorage instead of a hard coded one
+        TODO: Make the "Logger" class be the one that handles the console, MudaeGUI should not have the burden of console handling
         TODO: Then you can actually look at each function individually
         */
+        // Create GUI Modules
+        this.mudaelogs = new Logger(); //! TODO: TAKE A LOOK HERE
+
         // Basic Loading
         this.guiElement = document.createElement("div");
         this.guiElement.className = "mudae-gui";
         this.guiElement.innerHTML = GUI_HTML;
         document.body.appendChild(this.guiElement);
 
-        // Declaring
+        this.setupGUI();
+      }
+
+      setupGUI() {
+        // Locating Objects
         const closeButton = this.guiElement.querySelector(".mudae-close-button");
         const minimizeButton = this.guiElement.querySelector(".mudae-minimize-button");
         const categoryList = this.guiElement.querySelector(".mudae-gui-categories");
@@ -190,15 +197,15 @@
 
       // GUI Drag
       startGUIDrag(event) {
-          if (event.target?.closest(".mudae-options")) {return;}
+        if (event.target?.closest(".mudae-options")) {return;}
 
-          this.guiDragging = true;
+        this.guiDragging = true;
 
-          this.dragOffsetX = event.clientX - this.guiElement.getBoundingClientRect().left;
-          this.dragOffsetY = event.clientY - this.guiElement.getBoundingClientRect().top;
+        this.dragOffsetX = event.clientX - this.guiElement.getBoundingClientRect().left;
+        this.dragOffsetY = event.clientY - this.guiElement.getBoundingClientRect().top;
 
-          this.dragMaxXPos = window.innerWidth - this.guiElement.offsetWidth;
-          this.dragMaxYPos = window.innerHeight - this.guiElement.offsetHeight;
+        this.dragMaxXPos = window.innerWidth - this.guiElement.offsetWidth;
+        this.dragMaxYPos = window.innerHeight - this.guiElement.offsetHeight;
       }
 
       updateGUIDrag(event) {
@@ -306,11 +313,11 @@
           if (currentStyle) {
             // document.head.removeChild(currentStyle);
             currentStyle.innerHTML = style;
-            return;
           }
 
           const customStyle = document.createElement("style");
           customStyle.id = "mudae-custom-style";
+          customStyle.innerHTML = style;
           document.head.appendChild(customStyle);
         }
   }
@@ -365,9 +372,16 @@
   }
 
   class Mudae {
-        getHaremName(msgElement) {
-          return msgElement?.querySelector("[class|='embedAuthorName']")?.innerText;
-        }
+    getHaremName(msgElement) {
+      return msgElement?.querySelector("[class|='embedAuthorName']")?.innerText;
+    }
+  }
+
+  class Whitelist {
+    // Whitelist Functions here
+    constructor() {
+      return;
+    }
   }
 
   class MudaeAutoMessage extends Mudae {
@@ -392,112 +406,112 @@
         Logger.createLog(`Messages will be sent at ${now.getHours().toString()
           .padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`)
 
-          await new Promise(resolve => setTimeout(resolve, finalDelay * 60 * 1000));
+        await new Promise(resolve => setTimeout(resolve, finalDelay * 60 * 1000));
 
-          nowUTCHours = now.getUTCHours();
-          if (nowUTCHours >= forbiddenHourMin && nowUTCHours <= forbiddenHourMax) {
+        nowUTCHours = now.getUTCHours();
+        if (nowUTCHours >= forbiddenHourMin && nowUTCHours <= forbiddenHourMax) {
             Logger.createDebugLog("We couldn't run the code: it is too late at night")
             continue;
-          }
+        }
 
-          Logger.createDebugLog("Message wait finished, sending messages");
-          for (let i = 0; i < 8; i++) {
-            await new Promise(resolve =>
-              setTimeout(() => {
+        Logger.createDebugLog("Message wait finished, sending messages");
+        for (let i = 0; i < 8; i++) {
+          await new Promise(resolve =>
+            setTimeout(() => {
                 Discord.sendMessage(message);
                 resolve();
-              }, randomWithinRange(1000, 2000)));
-            }
+            }, randomWithinRange(1000, 2000)));
+          }
 
-            PageHandler.attemptRefresh();
+          PageHandler.attemptRefresh();
       }
     }
   }
 
   class MudaeAutoClaim extends Mudae {
-            messageListener(mutations) {
-              for (const mutation of mutations) {
-                for (const node of mutation.addedNodes) {
-                  if (!node) continue;
-                  mudaeautoclaim.verifyMessage(node);
-                }
-              }
-            }
+    messageListener(mutations) {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (!node) continue;
+          mudaeautoclaim.verifyMessage(node);
+        }
+      }
+    }
 
-            verifyMessage(msgElement) {
-              if (msgElement.nodeName !== 'LI') {return};
+    verifyMessage(msgElement) {
+      if (msgElement?.nodeName !== 'LI') {return};
 
-              const msg = msgElement.querySelector("[id|='message-content']")?.innerText;
-              const haremName = this.getHaremName(msgElement);
-              const msgId = Discord.getMessageId(msgElement);
+      const msg = msgElement.querySelector("[id|='message-content']")?.innerText;
+      const haremName = this.getHaremName(msgElement);
+      const msgId = Discord.getMessageId(msgElement);
 
-              Logger.createDebugLog(`Element of id ${msgId} has msg=${msg}; haremName=${haremName}`)
+      Logger.createDebugLog(`Element of id ${msgId} has msg=${msg}; haremName=${haremName}`)
 
-              if (!haremName || !msgId) {return};
-              Logger.createDebugLog(`${msg || haremName} is a valid message`)
-              if (msg && msg[0] === "$") {return};
-              Logger.createDebugLog(`${msg || haremName} is not a command`)
-              if (!this.isMudaeClaimable(msgElement)) {return};
-              Logger.createDebugLog(`${msg || haremName} is a valid harem`)
-              if (!WHITELIST.includes(haremName.toLowerCase())) {
-                Logger.createLog(`${haremName} is NOT in your whitelist`)
-                return;
-              }
+      if (!haremName || !msgId) {return};
+      Logger.createDebugLog(`${msg || haremName} is a valid message`)
+      if (msg && msg[0] === "$") {return};
+      Logger.createDebugLog(`${msg || haremName} is not a command`)
+      if (!this.isMudaeClaimable(msgElement)) {return};
+      Logger.createDebugLog(`${msg || haremName} is a valid harem`)
+      if (!WHITELIST.includes(haremName.toLowerCase())) {
+        Logger.createLog(`${haremName} is NOT in your whitelist`)
+        return;
+      }
 
-              this.claimHarem(msgElement);
-            }
+      this.claimHarem(msgElement);
+    }
 
-            isMudaeClaimable(msgElement) {
-              /* In order to validate the message you must do the following:
-              * Assert the message contains an article element
-              * Assert the message contains a haremName
-              * Assert the message contains an image from the domain mudae.net or imgur.com
-              * Assert the message button count is lesser than 1
-              //  Check the sidebar color (if there are any), if it is red it usually means the harem is claimed or that someone ran "$mmi" REPLACED WITH CHECKING BUTTON COUNT
-              */
-              const msgId = Discord.getMessageId(msgElement);
-              if (!msgElement.querySelector('article')) {
-                Logger.createDebugLog(`Message of ID ${msgId} does not have an article.`);
-                return false;
-              }
+    isMudaeClaimable(msgElement) {
+      /* In order to validate the message you must do the following:
+      * Assert the message contains an article element
+      * Assert the message contains a haremName
+      * Assert the message contains an image from the domain mudae.net or imgur.com
+      * Assert the message button count is lesser than 1
+      //  Check the sidebar color (if there are any), if it is red it usually means the harem is claimed or that someone ran "$mmi" REPLACED WITH CHECKING BUTTON COUNT
+      */
+      const msgId = Discord.getMessageId(msgElement);
+      if (!msgElement.querySelector('article')) {
+        Logger.createDebugLog(`Message of ID ${msgId} does not have an article.`);
+        return false;
+      }
 
-              const haremName = this.getHaremName(msgElement)
-              if (!haremName) {
-                Logger.createDebugLog(`Message of ID ${msgId} does not have a harem name.`);
-                return false;
-              }
+      const haremName = this.getHaremName(msgElement)
+      if (!haremName) {
+        Logger.createDebugLog(`Message of ID ${msgId} does not have a harem name.`);
+        return false;
+      }
 
-              const imageURL = msgElement.querySelector("[class^='originalLink']")?.href;
-              if (!(imageURL?.includes('https://mudae.net')
-              || imageURL?.includes("https://imgur.com")))
-              {
-                Logger.createDebugLog(`Message of ID ${msgId} does not have a valid img link.`);
-                return false
-              }
+      const imageURL = msgElement.querySelector("[class^='originalLink']")?.href;
+      if (!(imageURL?.includes('https://mudae.net')
+      || imageURL?.includes("https://imgur.com")))
+      {
+        Logger.createDebugLog(`Message of ID ${msgId} does not have a valid img link.`);
+        return false
+      }
 
-              let buttons = msgElement.querySelector('button')?.parentNode?.children;
-              if (buttons?.length && buttons.length > 1) {
-                Logger.createDebugLog(`Message of ID ${msgId} contains too many buttons`);
-                return false
-              }
+      let buttons = msgElement.querySelector('button')?.parentNode?.children;
+      if (buttons?.length && buttons.length > 1) {
+        Logger.createDebugLog(`Message of ID ${msgId} contains too many buttons`);
+        return false
+      }
 
-              Logger.createDebugLog(`Validating Message ${msgId}`);
-              return true;
-            }
+      Logger.createDebugLog(`Validating Message ${msgId}`);
+      return true;
+    }
 
-            claimHarem(msgElement) {
-              Logger.createLog(`Claiming ${this.getHaremName(msgElement)}`);
-              const buttons = msgElement.querySelector('button')?.parentNode?.children;
-              const messageId = Discord.getMessageId(msgElement);
+    claimHarem(msgElement) {
+      Logger.createLog(`Claiming ${this.getHaremName(msgElement)}`);
+      const buttons = msgElement.querySelector('button')?.parentNode?.children;
+      const messageId = Discord.getMessageId(msgElement);
 
-              if (buttons.length >= 1) {
-                Logger.createDebugLog(`Pressing ${messageId} button`);
-                buttons[0].click();
-              }
+      if (buttons?.length >= 1) {
+        Logger.createDebugLog(`Pressing ${messageId} button`);
+        buttons[0].click();
+      }
 
-              Discord.reactToMessage(messageId);
-              Logger.createDebugLog(`Finished claiming ${messageId}`);
-            }
+      Discord.reactToMessage(messageId);
+      Logger.createDebugLog(`Finished claiming ${messageId}`);
+    }
   }
 
   // Before Anything Loads Load
