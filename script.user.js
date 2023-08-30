@@ -61,7 +61,6 @@
       // TODO: Store the configs in Local Storage so that we don't lose it
 
       DEBUG_MODE: false,
-      NORMAL_LOGS: true,
       COMMAND: '$m',
       SERVER_ID: '968552066165395496',
       CHANNEL_ID: '1009238449217347634',
@@ -112,13 +111,9 @@
         // this.dragOffsetX = 0;
         // this.dragOffsetY = 0;
         /*
-        TODO: Make the constructor create a Logger class, which will be used for the console. also rename it to MudaeLogs
         TODO: Implement a whitelist system using localstorage instead of a hard coded one
-        TODO: Make the "Logger" class be the one that handles the console, MudaeGUI should not have the burden of console handling
-        TODO: Then you can actually look at each function individually
+        TODO: Make each function work
         */
-        // Create GUI Modules
-        this.mudaelogs = new Logger(); //! TODO: TAKE A LOOK HERE
 
         // Basic Loading
         this.guiElement = document.createElement("div");
@@ -163,7 +158,11 @@
             this.changeCategory(button, categoryDict[button.id]);
           });
         }
-        this.addConsoleLog("~ [MUDAE] Console Logic Loaded");
+
+        // Create GUI Modules
+        this.mudaelogs = new MudaeLogs(this); //! TODO: TAKE A LOOK HERE
+        // this.mudaeautoclaim = new MudaeAutoClaim(); // Work on this functioning later
+        this.mudaelogs.createLog("Console Logic Loaded");
       }
 
       configLogic() {
@@ -176,8 +175,6 @@
         const currentCategory = document.querySelector(".mudae-current-category");
         const newCategory = this.guiElement.querySelector(newCategorySelector);
 
-        // categoryElement.innerHTML = html; TODO: Look at the first item of the TODO list from the constructor to seewhy this is commented out
-        // Add logic so that when we select a button, it will hide every category display at mudae-options and display only the one selected.
         currentCategory?.classList.remove("mudae-current-category");
         currentCategoryButton?.classList.remove("mudae-selected-button");
         newCategory.classList.add("mudae-current-category");
@@ -224,44 +221,57 @@
       stopGUIDrag() {
           this.guiDragging = false;
       }
-
-      // GUI Console
-      addConsoleLog(log) {
-        if (!this.guiElement) return;
-
-        const consoleLogs = this.guiElement?.querySelector("#mudae-console-logs");
-        const consoleLimit = 150;
-
-        if (!consoleLogs) {
-          return;
-        }
-
-        if (consoleLogs.childNodes.length > consoleLimit) {
-            consoleLogs.removeChild(consoleLogs.childNodes[0]);
-        }
-
-        const logElement = document.createElement("li");
-        logElement.innerHTML = log;
-        consoleLogs.appendChild(logElement);
-        consoleLogs.parentElement.scrollTop = consoleLogs.parentElement.scrollHeight;
-      }
   }
 
-  class Logger {
-        static createLog(msg) {
-          if (CONFIG.NORMAL_LOGS) {
-            return mudaegui.addConsoleLog(`~ [MUDAE] ${msg}`)
-          }
-        }
+  class MudaeLogs {
+    constructor(parentgui) {
+      this.parentgui = parentgui;
+      this.guiElement = parentgui.guiElement;
+    }
 
-        static createDebugLog(msg) {
-          if (CONFIG.DEBUG_MODE) {
-            return mudaegui.addConsoleLog(`~ [MUDAE DEBUG] ${msg}`);
-          }
-        }
+    addConsoleLog(log, color) {
+      //TODO: Split the console into 2, the debug console, and the regular console
+      if (!this.guiElement) {
+        debugger;
+        return;
+      }
+
+      const consoleLogs = this.guiElement?.querySelector("#mudae-console-logs");
+      const consoleLimit = 150;
+
+      if (!consoleLogs) {
+        debugger;
+        return;
+      }
+
+      if (consoleLogs.childNodes.length > consoleLimit) {
+        consoleLogs.removeChild(consoleLogs.childNodes[0]);
+      }
+
+      const logElement = document.createElement("li");
+      logElement.innerHTML = log;
+
+      if (color) {
+        logElement.style.color = color;
+      }
+      consoleLogs.appendChild(logElement);
+
+      consoleLogs.parentElement.scrollTop = consoleLogs.parentElement.scrollHeight; //! THIS MAY NOT BE WORKING
+    }
+
+    createLog(msg) {
+      return this.addConsoleLog(`~ [MUDAE] ${msg}`)
+    }
+
+    createDebugLog(msg) {
+      if (CONFIG.DEBUG_MODE) {
+        return this.addConsoleLog(`~ [MUDAE DEBUG] ${msg}`, "orange");
+      }
+    }
   }
 
   class PageHandler {
+    // make this class not static
         /*static noTrack() {
           // No more global processors
           window.__SENTRY__.globalEventProcessors?.splice(0, window.__SENTRY__.globalEventProcessors.length);
@@ -329,7 +339,7 @@
 
         static sendMessage(message) {
           //TODO: DO NOT complete this function before addressing the missing features of scheduleMessages
-          Logger.createDebugLog(`Sending ${message}...`);
+          mudaelogs.createDebugLog(`Sending ${message}...`);
           let url = `https://discord.com/api/v9/channels/${CONFIG.CHANNEL_ID}/messages`;
           let headers = {
             'Authorization': TOKEN,
@@ -349,7 +359,7 @@
 
         static reactToMessage(msgId) {
           if (!msgId) {
-            Logger.createLog(`Error: ${msgId} is not a valid ID}`)
+            mudaelogs.createLog(`Error: ${msgId} is not a valid ID}`)
           }
 
           const api = 'https://discord.com/api/v9/channels/'
@@ -366,25 +376,19 @@
             headers: headers
           })
           .then(response => {
-            Logger.createDebugLog(`Message reaction sent with ${response.status}`)
+            mudaelogs.createDebugLog(`Message reaction sent with ${response.status}`)
           })
         }
-  }
+  }Mudae
 
-  class Mudae {
-    getHaremName(msgElement) {
-      return msgElement?.querySelector("[class|='embedAuthorName']")?.innerText;
-    }
-  }
-
-  class Whitelist {
+  class MudaeWhitelist {
     // Whitelist Functions here
     constructor() {
       return;
     }
   }
 
-  class MudaeAutoMessage extends Mudae {
+  class MudaeAutoMessage {
     static async startMessageInterval(message) {
       const forbiddenHourMin = 4;
       const forbiddenHourMax = 12;
@@ -402,19 +406,19 @@
 
         now.setMinutes(now.getMinutes() + finalDelay);
 
-        Logger.createDebugLog(`Waiting ${finalDelay} minutes until we'll send messages`);
-        Logger.createLog(`Messages will be sent at ${now.getHours().toString()
+        mudaelogs.createDebugLog(`Waiting ${finalDelay} minutes until we'll send messages`);
+        mudaelogs.createLog(`Messages will be sent at ${now.getHours().toString()
           .padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`)
 
         await new Promise(resolve => setTimeout(resolve, finalDelay * 60 * 1000));
 
         nowUTCHours = now.getUTCHours();
         if (nowUTCHours >= forbiddenHourMin && nowUTCHours <= forbiddenHourMax) {
-            Logger.createDebugLog("We couldn't run the code: it is too late at night")
+            mudaelogs.createDebugLog("We couldn't run the code: it is too late at night")
             continue;
         }
 
-        Logger.createDebugLog("Message wait finished, sending messages");
+        mudaelogs.createDebugLog("Message wait finished, sending messages");
         for (let i = 0; i < 8; i++) {
           await new Promise(resolve =>
             setTimeout(() => {
@@ -428,12 +432,12 @@
     }
   }
 
-  class MudaeAutoClaim extends Mudae {
+  class MudaeAutoClaim {
     messageListener(mutations) {
       for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
           if (!node) continue;
-          mudaeautoclaim.verifyMessage(node);
+          this.verifyMessage(node);
         }
       }
     }
@@ -445,16 +449,16 @@
       const haremName = this.getHaremName(msgElement);
       const msgId = Discord.getMessageId(msgElement);
 
-      Logger.createDebugLog(`Element of id ${msgId} has msg=${msg}; haremName=${haremName}`)
+      mudaelogs.createDebugLog(`Element of id ${msgId} has msg=${msg}; haremName=${haremName}`)
 
       if (!haremName || !msgId) {return};
-      Logger.createDebugLog(`${msg || haremName} is a valid message`)
+      mudaelogs.createDebugLog(`${msg || haremName} is a valid message`)
       if (msg && msg[0] === "$") {return};
-      Logger.createDebugLog(`${msg || haremName} is not a command`)
+      mudaelogs.createDebugLog(`${msg || haremName} is not a command`)
       if (!this.isMudaeClaimable(msgElement)) {return};
-      Logger.createDebugLog(`${msg || haremName} is a valid harem`)
+      mudaelogs.createDebugLog(`${msg || haremName} is a valid harem`)
       if (!WHITELIST.includes(haremName.toLowerCase())) {
-        Logger.createLog(`${haremName} is NOT in your whitelist`)
+        mudaelogs.createLog(`${haremName} is NOT in your whitelist`)
         return;
       }
 
@@ -471,13 +475,13 @@
       */
       const msgId = Discord.getMessageId(msgElement);
       if (!msgElement.querySelector('article')) {
-        Logger.createDebugLog(`Message of ID ${msgId} does not have an article.`);
+        mudaelogs.createDebugLog(`Message of ID ${msgId} does not have an article.`);
         return false;
       }
 
       const haremName = this.getHaremName(msgElement)
       if (!haremName) {
-        Logger.createDebugLog(`Message of ID ${msgId} does not have a harem name.`);
+        mudaelogs.createDebugLog(`Message of ID ${msgId} does not have a harem name.`);
         return false;
       }
 
@@ -485,42 +489,49 @@
       if (!(imageURL?.includes('https://mudae.net')
       || imageURL?.includes("https://imgur.com")))
       {
-        Logger.createDebugLog(`Message of ID ${msgId} does not have a valid img link.`);
+        mudaelogs.createDebugLog(`Message of ID ${msgId} does not have a valid img link.`);
         return false
       }
 
       let buttons = msgElement.querySelector('button')?.parentNode?.children;
       if (buttons?.length && buttons.length > 1) {
-        Logger.createDebugLog(`Message of ID ${msgId} contains too many buttons`);
+        mudaelogs.createDebugLog(`Message of ID ${msgId} contains too many buttons`);
         return false
       }
 
-      Logger.createDebugLog(`Validating Message ${msgId}`);
+      mudaelogs.createDebugLog(`Validating Message ${msgId}`);
       return true;
     }
 
     claimHarem(msgElement) {
-      Logger.createLog(`Claiming ${this.getHaremName(msgElement)}`);
+      mudaelogs.createLog(`Claiming ${this.getHaremName(msgElement)}`);
       const buttons = msgElement.querySelector('button')?.parentNode?.children;
       const messageId = Discord.getMessageId(msgElement);
 
       if (buttons?.length >= 1) {
-        Logger.createDebugLog(`Pressing ${messageId} button`);
+        mudaelogs.createDebugLog(`Pressing ${messageId} button`);
         buttons[0].click();
       }
 
       Discord.reactToMessage(messageId);
-      Logger.createDebugLog(`Finished claiming ${messageId}`);
+      mudaelogs.createDebugLog(`Finished claiming ${messageId}`);
+    }
+
+    getHaremName(msgElement) {
+      return msgElement?.querySelector("[class|='embedAuthorName']")?.innerText;
     }
   }
 
   // Before Anything Loads Load
+  // TODO: Transform this code into a constructor for pagehandler
   setInterval(PageHandler.attemptRefresh, 1800); // temporary while we don't have mudaeautomessage
   PageHandler.correctCurrentUrl();
   PageHandler.loadCustomStyle();
   const mudaegui = new MudaeGUI();
-  const mudaeautoclaim = new MudaeAutoClaim();
+  const mudaelogs = mudaegui.mudaelogs;
+  const mudaeautoclaim = new MudaeAutoClaim(); // make subclass to mudaegui
   // const mudaeautomessage = new MudaeAutoMessage();
+  mudaelogs.createDebugLog("Test");
 
 
   if (DEBUGGING_UI) {
@@ -528,7 +539,7 @@
   }
 
   const urlUpdateChecker = new MutationObserver(PageHandler.correctCurrentUrl);
-  const messageObserver = new MutationObserver(mudaeautoclaim.messageListener);
+  const messageObserver = new MutationObserver(mudaeautoclaim.messageListener.bind(mudaeautoclaim));
 
 
   // OnMessagesLoad
@@ -539,18 +550,18 @@
         {
           childList: true
         }
-      )
+    )
 
-      messageObserver.observe(
+    messageObserver.observe(
         document.querySelector(msgsElementSelector),
         {
           childList: true
         }
-        )
+    )
 
-        // mudaeautomessage.startMessageInterval(CONFIG.COMMAND);
-        Logger.createDebugLog("Mutation Observers online")
-      }, true)
+      // mudaeautomessage.startMessageInterval(CONFIG.COMMAND);
+      mudaelogs.createDebugLog("Mutation Observers online")
+    }, true)
 
     })();
 
