@@ -16,7 +16,8 @@
 (function() {
   'use strict';
 
-  const DEBUGGING_UI = window.location.href.includes("debugger.html")
+  //const DEBUGGING_UI = window.location.href.includes("debugger.html")
+  const DEBUGGING_UI = window.location.hostname != "discord.com";
   if (!DEBUGGING_UI && typeof Vencord === 'undefined') {
     alert(
       "[MUDAE GUI] Install the VENCORD extension to prevent discord detection.");
@@ -30,6 +31,7 @@
 
   const GUI_HTML = GM.getResourceText("guihtml")
   const GUI_CSS = GM.getResourceText("guicss")
+  // Move this to the future Page class
   const TOKEN = getDiscordToken();
   const CONFIG = {
       //? GUI Elements:
@@ -102,6 +104,135 @@
       "diavolo",
       "shin seyoung"
   ]
+
+  class PageHandler {
+    // make this class not static
+    /*static noTrack() {
+      // No more global processors
+      window.__SENTRY__.globalEventProcessors?.splice(0, window.__SENTRY__.globalEventProcessors.length);
+
+      // Kill sentry logs
+      window.__SENTRY__.logger.disable();
+
+      const SentryHub = window.DiscordSentry.getCurrentHub();
+      SentryHub.getClient().close(0); // Kill reporting
+      SentryHub.getScope().clear(); // Delete PII
+    }*/
+
+    static handle() {
+      // Load Style
+      this.importStyle(GUI_CSS)
+
+      // DebugMode
+      if (DEBUGGING_UI) {
+        return;
+      }
+
+      // This will be here while we do not have MudaeAUtoMessage, that will complicate things since we don't want to refresh while sending messages, and at the same time if it's off, it should refresh after some time.
+      setInterval(PageHandler.attemptRefresh, 1800);
+
+      // Ensuring we are at the correct URL
+      //TODO: Well, just put the mutation observer here
+      const titleObserve = new MutationObserver(this.correctCurrentUrl);
+      titleObserve.observe(document.querySelector("head title"), {childList: true})
+      this.correctCurrentUrl();
+    }
+
+    static async attemptRefresh() {
+      // TODO: Rewrite: get page delay, after that check a variable that is false if thr page should not refresh yet. Use a setInterval that will be checkijg that variable, if it is true, run window.location.reload. That way, we just need to run scheduleRefresh[rename func] as an async.
+      const hourToMSCoefficient = 60*60*1000;
+      const currentPageTime = document.timeline.currentTime
+      const minimumDelayMS = 3 * hourToMSCoefficient;
+
+      if (currentPageTime > minimumDelayMS) {
+        window.location.reload();
+      }
+      /* const MIN = 90*60*1000; // 1 Hour 30 Minutes to MS
+      const MAX = MIN * 2;
+
+      return setInterval(function() {
+        window.location.reload();
+      }, randomWithinRange(MIN, MAX)) */
+    }
+
+    static correctCurrentUrl() {
+      // TODO: This function is now responsible for responding to the mutation of tue title
+
+      const urlPathSegments = window.location.pathname.split('/');
+
+      if ( urlPathSegments[1] !== "channels"
+        || urlPathSegments[2] !== CONFIG.SERVER_ID
+        || urlPathSegments[3] !== CONFIG.CHANNEL_ID)
+      {
+        window.location.href =
+        `https://discord.com/channels/${CONFIG.SERVER_ID}/${CONFIG.CHANNEL_ID}`;
+      }
+    }
+
+    static importStyle(style) {
+      const currentStyle = document.head.querySelector("#mudae-custom-style")
+
+      if (currentStyle) {
+        // document.head.removeChild(currentStyle);
+        currentStyle.innerHTML = style;
+        return;
+      }
+
+      const customStyle = document.createElement("style");
+      customStyle.id = "mudae-custom-style";
+      customStyle.innerHTML = style;
+      document.head.appendChild(customStyle);
+    }
+  }
+
+  class Discord {
+    static getMessageId(msgElement) {
+      return msgElement?.id?.split("-")[3];
+    }
+    
+    static sendMessage(message) {
+      //TODO: DO NOT complete this function before addressing the missing features of scheduleMessages
+      mudaelogs.createDebugLog(`Sending ${message}...`);
+      let url = `https://discord.com/api/v9/channels/${CONFIG.CHANNEL_ID}/messages`;
+      let headers = {
+        'Authorization': TOKEN,
+        'Content-Type': "application/json",
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+      }
+      let payload = {
+        'content': message
+      }
+      
+      fetch(url, {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify(payload)
+      })
+    }
+    
+    static reactToMessage(msgId) {
+      if (!msgId) {
+        mudaelogs.createLog(`Error: ${msgId} is not a valid ID}`)
+      }
+      
+      const api = 'https://discord.com/api/v9/channels/'
+      const emoji = "%F0%9F%A4%97/%40me";
+      const url =
+      `${api}${CONFIG.CHANNEL_ID}/messages/${msgId}/reactions/${emoji}`
+      const headers = {
+        'Authorization': TOKEN,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+      }
+      
+      fetch(url, {
+        method: 'PUT',
+        headers: headers
+      })
+      .then(response => {
+        mudaelogs.createDebugLog(`Message reaction sent with ${response.status}`)
+      })
+    }
+  }
 
   class MudaeGUI {
       constructor() {
@@ -271,117 +402,6 @@
     }
   }
 
-  class PageHandler {
-    // make this class not static
-        /*static noTrack() {
-          // No more global processors
-          window.__SENTRY__.globalEventProcessors?.splice(0, window.__SENTRY__.globalEventProcessors.length);
-
-          // Kill sentry logs
-          window.__SENTRY__.logger.disable();
-
-          const SentryHub = window.DiscordSentry.getCurrentHub();
-          SentryHub.getClient().close(0); // Kill reporting
-          SentryHub.getScope().clear(); // Delete PII
-        }*/
-
-        static attemptRefresh() {
-          const hourToMSCoefficient = 60*60*1000;
-          const currentPageTime = document.timeline.currentTime
-          const minimumDelayMS = 3 * hourToMSCoefficient;
-
-          if (currentPageTime > minimumDelayMS) {
-            window.location.reload();
-          }
-          /* const MIN = 90*60*1000; // 1 Hour 30 Minutes to MS
-          const MAX = MIN * 2;
-
-          return setInterval(function() {
-            window.location.reload();
-          }, randomWithinRange(MIN, MAX)) */
-        }
-
-        static correctCurrentUrl() {
-          if (window.location.href.includes("debugger.html")) {
-            return;
-          }
-
-          let urlPathSegments = window.location.pathname.split('/');
-
-          if ( urlPathSegments[1] !== "channels"
-          || urlPathSegments[2] !== CONFIG.SERVER_ID
-          || urlPathSegments[3] !== CONFIG.CHANNEL_ID
-          ) {
-            window.location.href =
-            `https://discord.com/channels/${CONFIG.SERVER_ID}/${CONFIG.CHANNEL_ID}`;
-          }
-        }
-
-        static loadCustomStyle() {
-          const style = GUI_CSS;
-          const currentStyle = document.head.querySelector("#mudae-custom-style")
-
-          if (currentStyle) {
-            // document.head.removeChild(currentStyle);
-            currentStyle.innerHTML = style;
-          }
-
-          const customStyle = document.createElement("style");
-          customStyle.id = "mudae-custom-style";
-          customStyle.innerHTML = style;
-          document.head.appendChild(customStyle);
-        }
-  }
-
-  class Discord {
-        static getMessageId(msgElement) {
-          return msgElement?.id?.split("-")[3];
-        }
-
-        static sendMessage(message) {
-          //TODO: DO NOT complete this function before addressing the missing features of scheduleMessages
-          mudaelogs.createDebugLog(`Sending ${message}...`);
-          let url = `https://discord.com/api/v9/channels/${CONFIG.CHANNEL_ID}/messages`;
-          let headers = {
-            'Authorization': TOKEN,
-            'Content-Type': "application/json",
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
-          }
-          let payload = {
-            'content': message
-          }
-
-          fetch(url, {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify(payload)
-          })
-        }
-
-        static reactToMessage(msgId) {
-          if (!msgId) {
-            mudaelogs.createLog(`Error: ${msgId} is not a valid ID}`)
-          }
-
-          const api = 'https://discord.com/api/v9/channels/'
-          const emoji = "%F0%9F%A4%97/%40me";
-          const url =
-          `${api}${CONFIG.CHANNEL_ID}/messages/${msgId}/reactions/${emoji}`
-          const headers = {
-            'Authorization': TOKEN,
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
-          }
-
-          fetch(url, {
-            method: 'PUT',
-            headers: headers
-          })
-          .then(response => {
-            mudaelogs.createDebugLog(`Message reaction sent with ${response.status}`)
-          })
-        }
-  }
-
   class MudaeWhitelist {
     // Whitelist Functions here
     constructor() {
@@ -525,33 +545,31 @@
 
   // Before Anything Loads Load
   // TODO: Transform this code into a constructor for pagehandler
-  setInterval(PageHandler.attemptRefresh, 1800); // temporary while we don't have mudaeautomessage
-  PageHandler.correctCurrentUrl();
-  PageHandler.loadCustomStyle();
+  // TODO: Rename PageHandler to Page; make it where it is stored localstorage, settings, etc. Then it'll make sense to create a new Page()
+  // PageHandler.loadCustomStyle();
+  PageHandler.handle();
   const mudaegui = new MudaeGUI();
   const mudaelogs = mudaegui.mudaelogs;
   const mudaeautoclaim = new MudaeAutoClaim(); // make subclass to mudaegui
   // const mudaeautomessage = new MudaeAutoMessage();
-  mudaelogs.createDebugLog("Test");
-
+  mudaelogs.createDebugLog("Debug logs enabled");
 
   if (DEBUGGING_UI) {
     return;
   }
 
-  const urlUpdateChecker = new MutationObserver(PageHandler.correctCurrentUrl);
+  // const urlUpdateChecker = new MutationObserver(PageHandler.correctCurrentUrl);
   const messageObserver = new MutationObserver(mudaeautoclaim.messageListener.bind(mudaeautoclaim));
-
-
   // OnMessagesLoad
+  //  TODO: LOOK FOR AN ALTERNATIVE METHOD use mutation observers on the body. You do need to move this to the mudaeAutoClaim class constructor
   waitForKeyElements("[class|='scrollerInner']", () => {
     const msgsElementSelector = "[class|='scrollerInner']"
-    urlUpdateChecker.observe(
+    /* urlUpdateChecker.observe(
       document.head.querySelector("title"),
         {
           childList: true
         }
-    )
+    ) */
 
     messageObserver.observe(
         document.querySelector(msgsElementSelector),
@@ -560,11 +578,11 @@
         }
     )
 
-      // mudaeautomessage.startMessageInterval(CONFIG.COMMAND);
-      mudaelogs.createDebugLog("Mutation Observers online")
-    }, true)
+    // mudaeautomessage.startMessageInterval(CONFIG.COMMAND);
+    mudaelogs.createDebugLog("Mutation Observers online")
+  }, true)
 
-    })();
+  })();
 
 function getDiscordToken() {
   try {
@@ -579,13 +597,13 @@ function getDiscordToken() {
         }
       ]
       );
-    }
-    catch (e) {
-      return false;
-    }
-    return m.find(m => m?.exports?.default?.getToken !== void 0)
-    .exports.default.getToken();
   }
+  catch (e) {
+    return false;
+  }
+  return m.find(m => m?.exports?.default?.getToken !== void 0)
+    .exports.default.getToken();
+}
 function randomWithinRange(min, max) {
   return Math.floor(Math.random()*(max-min+1)) + min;
 }
