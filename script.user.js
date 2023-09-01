@@ -33,6 +33,7 @@
   const GUI_CSS = GM.getResourceText("guicss")
   // Move this to the future Page class
   const TOKEN = getDiscordToken();
+  // TODO: Config & whitelistwill be within the Page class
   const CONFIG = {
       //? GUI Elements:
       //* Auto Claim
@@ -132,14 +133,13 @@
       setInterval(PageHandler.attemptRefresh, 1800);
 
       // Ensuring we are at the correct URL
-      //TODO: Well, just put the mutation observer here
       const titleObserve = new MutationObserver(this.correctCurrentUrl);
       titleObserve.observe(document.querySelector("head title"), {childList: true})
       this.correctCurrentUrl();
     }
 
-    static async attemptRefresh() {
-      // TODO: Rewrite: get page delay, after that check a variable that is false if thr page should not refresh yet. Use a setInterval that will be checkijg that variable, if it is true, run window.location.reload. That way, we just need to run scheduleRefresh[rename func] as an async.
+    static attemptRefresh() {
+      // TODO: Rewrite: get page delay and wait it, after that check a variable that is false when something is stopping the page from refreshing. Use a setInterval that will be checkijg that variable after the intiial delay, if it is true, run window.location.reload. That way, we just need to run scheduleRefresh[rename func] as an async.
       const hourToMSCoefficient = 60*60*1000;
       const currentPageTime = document.timeline.currentTime
       const minimumDelayMS = 3 * hourToMSCoefficient;
@@ -156,8 +156,6 @@
     }
 
     static correctCurrentUrl() {
-      // TODO: This function is now responsible for responding to the mutation of tue title
-
       const urlPathSegments = window.location.pathname.split('/');
 
       if ( urlPathSegments[1] !== "channels"
@@ -189,7 +187,7 @@
     static getMessageId(msgElement) {
       return msgElement?.id?.split("-")[3];
     }
-    
+
     static sendMessage(message) {
       //TODO: DO NOT complete this function before addressing the missing features of scheduleMessages
       mudaelogs.createDebugLog(`Sending ${message}...`);
@@ -202,19 +200,19 @@
       let payload = {
         'content': message
       }
-      
+
       fetch(url, {
         method: "POST",
         headers: headers,
         body: JSON.stringify(payload)
       })
     }
-    
+
     static reactToMessage(msgId) {
       if (!msgId) {
         mudaelogs.createLog(`Error: ${msgId} is not a valid ID}`)
       }
-      
+
       const api = 'https://discord.com/api/v9/channels/'
       const emoji = "%F0%9F%A4%97/%40me";
       const url =
@@ -223,7 +221,7 @@
         'Authorization': TOKEN,
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
       }
-      
+
       fetch(url, {
         method: 'PUT',
         headers: headers
@@ -546,13 +544,14 @@
   // Before Anything Loads Load
   // TODO: Transform this code into a constructor for pagehandler
   // TODO: Rename PageHandler to Page; make it where it is stored localstorage, settings, etc. Then it'll make sense to create a new Page()
-  // PageHandler.loadCustomStyle();
   PageHandler.handle();
   const mudaegui = new MudaeGUI();
   const mudaelogs = mudaegui.mudaelogs;
   const mudaeautoclaim = new MudaeAutoClaim(); // make subclass to mudaegui
   // const mudaeautomessage = new MudaeAutoMessage();
   mudaelogs.createDebugLog("Debug logs enabled");
+
+  // Delete the code below this once you move waitForKeyElements to Page class
 
   if (DEBUGGING_UI) {
     return;
@@ -561,7 +560,7 @@
   // const urlUpdateChecker = new MutationObserver(PageHandler.correctCurrentUrl);
   const messageObserver = new MutationObserver(mudaeautoclaim.messageListener.bind(mudaeautoclaim));
   // OnMessagesLoad
-  //  TODO: LOOK FOR AN ALTERNATIVE METHOD use mutation observers on the body. You do need to move this to the mudaeAutoClaim class constructor
+  //  TODO: LOOK FOR AN ALTERNATIVE METHOD use; mutation observers on the body. You do need to move this to the mudaeAutoClaim class constructor
   waitForKeyElements("[class|='scrollerInner']", () => {
     const msgsElementSelector = "[class|='scrollerInner']"
     /* urlUpdateChecker.observe(
@@ -573,16 +572,30 @@
 
     messageObserver.observe(
         document.querySelector(msgsElementSelector),
-        {
-          childList: true
-        }
+        {childList: true}
     )
 
     // mudaeautomessage.startMessageInterval(CONFIG.COMMAND);
     mudaelogs.createDebugLog("Mutation Observers online")
   }, true)
 
-  })();
+  /*
+  TODO: implement this in MudaeAutoClaim
+  function waitForElement(selector) {
+    return new Promise((resolve) => {
+      const observer = new MutationObserver((mutationsList, observer) => {
+        const element = document.querySelector(selector);
+        if (element) {
+          observer.disconnect();
+          resolve(element);
+        }
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+  } */
+
+})();
 
 function getDiscordToken() {
   try {
