@@ -34,7 +34,7 @@
   const GUI_CSS = GM.getResourceText("guicss")
   // Move this to the future Page class
   const TOKEN = getDiscordToken();
-  // TODO: Config & whitelistwill be within the Page class
+  // TODO: Config & whitelist will be within the Page class
   const CONFIG = {
       //? GUI Elements:
       //* Auto Claim
@@ -60,8 +60,7 @@
 
       //! Hover Effect of blue 3px outline; blue #000AF5
 
-      // TODO: Look for the response message of mudae before sending another $m
-      // TODO: Also, don't forget to FIX YOUR BOOKMARK BAR, it's so scuffed lmao, don't even think 'bout going to linux without it fixed
+      // TODO: Look for the response message of mudae before sending another $m scratch that maybe, at least check if mudae is sending the "dude you have no rolls left"
       // TODO: Store the configs in Local Storage so that we don't lose it
 
       DEBUG_MODE: false,
@@ -140,7 +139,7 @@
     }
 
     static attemptRefresh() {
-      // TODO: Rewrite: get page delay and wait it, after that check a variable that is false when something is stopping the page from refreshing. Use a setInterval that will be checkijg that variable after the intiial delay, if it is true, run window.location.reload. That way, we just need to run scheduleRefresh[rename func] as an async.
+      // TODO: Rewrite: get page delay and wait it, after that check a variable that is false when something is stopping the page from refreshing (page.allowRefresh). Use a setInterval that will be checkijg that variable after the intiial delay, if it is true, run window.location.reload. That way, we just need to run scheduleRefresh[rename func] as an async.
       const hourToMSCoefficient = 60*60*1000;
       const currentPageTime = document.timeline.currentTime
       const minimumDelayMS = 3 * hourToMSCoefficient;
@@ -290,8 +289,8 @@
         }
 
         // Create GUI Modules
-        this.mudaelogs = new MudaeLogs(this); //! TODO: TAKE A LOOK HERE
-        // this.mudaeautoclaim = new MudaeAutoClaim(); // Work on this functioning later
+        this.mudaelogs = new MudaeLogs(this);
+        // this.mudaeautoclaim = new MudaeAutoClaim(); //! TODO: TAKE A LOOK HERE Work on this functioning later
         this.mudaelogs.createLog("Console Logic Loaded");
       }
 
