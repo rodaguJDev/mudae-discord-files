@@ -560,8 +560,9 @@
   // const urlUpdateChecker = new MutationObserver(PageHandler.correctCurrentUrl);
   const messageObserver = new MutationObserver(mudaeautoclaim.messageListener.bind(mudaeautoclaim));
   // OnMessagesLoad
-  // ! TODO: THE NEXT STEP IS TO MAKE THIS CODE WORK BOTH WHEN USING VIOLENTMONKEY (which will use the @resource keybord) AND WHEN WE RUN IT DIRECTLY USING A <script> TAG. (basically, if GM.getResourceText exists, use that function, otherwise,use a legacy function called fetch)
+  // ! TODO: THE NEXT STEP IS TO MAKE THIS CODE WORK BOTH WHEN USING VIOLENTMONKEY (which will use the @resource keybord) AND WHEN WE RUN IT DIRECTLY USING A <script> TAG. (basically, if GM.getResourceText exists, use that function, otherwise,use a legacy function called fetch) don't forget to use branches
   //  TODO: LOOK FOR AN ALTERNATIVE METHOD use; mutation observers on the body. You do need to move this to the mudaeAutoClaim class constructor
+  // TODO: I just had the best idea, instead of struggling to react to a message we could make the GUI have a category called "previous harem" which will list the last 10 harem that were sent, we will display the Name of the harem, the kakera count and the image (scaled obviously). It will be in the format of a card and if you click on the image you react to the message (msgId is stored obviously)
   // Also, try using branches now
   waitForKeyElements("[class|='scrollerInner']", () => {
     const msgsElementSelector = "[class|='scrollerInner']"
