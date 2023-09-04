@@ -14,7 +14,7 @@
 // ==/UserScript==
 
 // do it
-(function() {
+(async function() {
   'use strict';
 
   //const DEBUGGING_UI = window.location.href.includes("debugger.html")
@@ -28,8 +28,8 @@
   if (typeof(GM.getResourceText) === "undefined") {
     //alert("[MUDAE GUI] We could not find the function 'GM.getResourceText', please run the script with ViolentMonkey and grant GM.getResourceText").
     //return;
-    const GUI_HTML = fetchUrl("");
-    const GUI_CSS = fetchUrl("");
+    const GUI_HTML = await fetchUrl("");
+    const GUI_CSS = await fetchUrl("");
   }
   else {
     const GUI_CSS = GM.getResourceText("guicss")
@@ -618,7 +618,7 @@ function getDiscordToken() {
       );
   }
   catch (e) {
-    return false;
+    return "";
   }
   return m.find(m => m?.exports?.default?.getToken !== void 0)
     .exports.default.getToken();
