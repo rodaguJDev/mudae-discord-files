@@ -562,6 +562,7 @@
   const messageObserver = new MutationObserver(mudaeautoclaim.messageListener.bind(mudaeautoclaim));
   // OnMessagesLoad
   //  TODO: LOOK FOR AN ALTERNATIVE METHOD use; mutation observers on the body. You do need to move this to the mudaeAutoClaim class constructor
+  // Also, try using branches now
   waitForKeyElements("[class|='scrollerInner']", () => {
     const msgsElementSelector = "[class|='scrollerInner']"
     /* urlUpdateChecker.observe(
