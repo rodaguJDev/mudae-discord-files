@@ -560,6 +560,7 @@
   // const urlUpdateChecker = new MutationObserver(PageHandler.correctCurrentUrl);
   const messageObserver = new MutationObserver(mudaeautoclaim.messageListener.bind(mudaeautoclaim));
   // OnMessagesLoad
+  // ! TODO: THE NEXT STEP IS TO MAKE THIS CODE WORK BOTH WHEN USING VIOLENTMONKEY (which will use the @resource keybord) AND WHEN WE RUN IT DIRECTLY USING A <script> TAG. (basically, if GM.getResourceText exists, use that function, otherwise,use a legacy function called fetch)
   //  TODO: LOOK FOR AN ALTERNATIVE METHOD use; mutation observers on the body. You do need to move this to the mudaeAutoClaim class constructor
   // Also, try using branches now
   waitForKeyElements("[class|='scrollerInner']", () => {
