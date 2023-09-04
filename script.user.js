@@ -26,12 +26,15 @@
   }
 
   if (typeof(GM.getResourceText) === "undefined") {
-    alert("[MUDAE GUI] We could not find the function 'GM.getResourceText', please run the script with ViolentMonkey and grant GM.getResourceText").
-    return;
+    //alert("[MUDAE GUI] We could not find the function 'GM.getResourceText', please run the script with ViolentMonkey and grant GM.getResourceText").
+    //return;
+    const GUI_HTML = fetchUrl("");
+    const GUI_CSS = fetchUrl("");
   }
-
-  const GUI_HTML = GM.getResourceText("guihtml")
-  const GUI_CSS = GM.getResourceText("guicss")
+  else {
+    const GUI_CSS = GM.getResourceText("guicss")
+    const GUI_HTML = GM.getResourceText("guihtml")
+  }
   // Move this to the future Page class
   const TOKEN = getDiscordToken();
   // TODO: Config & whitelist will be within the Page class
@@ -622,6 +625,15 @@ function getDiscordToken() {
 }
 function randomWithinRange(min, max) {
   return Math.floor(Math.random()*(max-min+1)) + min;
+}
+async function fetchUrl(url) {
+  try {
+    const response = await fetch(url);
+    return response.text;
+  } 
+  catch {
+    console.error(`Error fetching url ${url}`);
+  }
 }
 
 
