@@ -25,15 +25,18 @@
     return;
   }
 
+  let GUI_HTML;
+  let GUI_CSS;
+
   if (typeof(GM.getResourceText) === "undefined") {
     //alert("[MUDAE GUI] We could not find the function 'GM.getResourceText', please run the script with ViolentMonkey and grant GM.getResourceText").
     //return;
-    const GUI_HTML = await fetchUrl("");
-    const GUI_CSS = await fetchUrl("");
+    GUI_HTML = await fetchUrl("https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui.html");
+    GUI_CSS = await fetchUrl("https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui-style.css");
   }
   else {
-    const GUI_CSS = GM.getResourceText("guicss")
-    const GUI_HTML = GM.getResourceText("guihtml")
+    GUI_CSS = GM.getResourceText("guicss")
+    GUI_HTML = GM.getResourceText("guihtml")
   }
   // Move this to the future Page class
   const TOKEN = getDiscordToken();
