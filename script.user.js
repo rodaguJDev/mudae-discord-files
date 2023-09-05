@@ -575,7 +575,7 @@
   const messageObserver = new MutationObserver(mudaeautoclaim.messageListener.bind(mudaeautoclaim));
   // OnMessagesLoad
   // ! TODO: THE NEXT STEP IS TO MAKE THIS CODE WORK BOTH WHEN USING VIOLENTMONKEY (which will use the @resource keybord) AND WHEN WE RUN IT DIRECTLY USING A <script> TAG. (basically, if GM.getResourceText exists, use that function, otherwise,use a legacy function called fetch) don't forget to use branches.
-  // ! TODO: Alright that's done, now I need to use a @media tag to detect if the screen is smalled than 600x400, in which case we make the GUI around 75% x 50% of the screen. Also, you need to make it draggable on mobile as well, here is the code. (This will be a problem to debug as I'll have to change the URLs to the current branch, but I just gotta remember to change it back once I'm finished)
+  // ! TODO: Alright that's done, now I need to use a @media tag- Actually, make is so the MAX-WIDTH is 600x400 and the MIN-WIDTH is 75vwx50vh. Also, you need to make it draggable on mobile as well, here is the code. (This will be a problem to debug as I'll have to change the URLs to the current branch, but I just gotta remember to change it back once I'm finished).
   /*
   const draggableDiv = document.getElementById('draggableDiv');
 let offsetX, offsetY, isDragging = false;
