@@ -574,7 +574,64 @@
   // const urlUpdateChecker = new MutationObserver(PageHandler.correctCurrentUrl);
   const messageObserver = new MutationObserver(mudaeautoclaim.messageListener.bind(mudaeautoclaim));
   // OnMessagesLoad
-  // ! TODO: THE NEXT STEP IS TO MAKE THIS CODE WORK BOTH WHEN USING VIOLENTMONKEY (which will use the @resource keybord) AND WHEN WE RUN IT DIRECTLY USING A <script> TAG. (basically, if GM.getResourceText exists, use that function, otherwise,use a legacy function called fetch) don't forget to use branches
+  // ! TODO: THE NEXT STEP IS TO MAKE THIS CODE WORK BOTH WHEN USING VIOLENTMONKEY (which will use the @resource keybord) AND WHEN WE RUN IT DIRECTLY USING A <script> TAG. (basically, if GM.getResourceText exists, use that function, otherwise,use a legacy function called fetch) don't forget to use branches.
+  // ! TODO: Alright that's done, now I need to use a @media tag to detect if the screen is smalled than 600x400, in which case we make the GUI around 75% x 50% of the screen. Also, you need to make it draggable on mobile as well, here is the code. (This will be a problem to debug as I'll have to change the URLs to the current branch, but I just gotta remember to change it back once I'm finished)
+  /*
+  const draggableDiv = document.getElementById('draggableDiv');
+let offsetX, offsetY, isDragging = false;
+
+// Function to start dragging
+function startDragging(event) {
+  if (event.type === 'touchstart') {
+    offsetX = event.touches[0].clientX - draggableDiv.getBoundingClientRect().left;
+    offsetY = event.touches[0].clientY - draggableDiv.getBoundingClientRect().top;
+  } else {
+    offsetX = event.clientX - draggableDiv.getBoundingClientRect().left;
+    offsetY = event.clientY - draggableDiv.getBoundingClientRect().top;
+  }
+
+  draggableDiv.style.cursor = 'grabbing';
+  isDragging = true;
+
+  // Prevent default dragging behavior on mobile devices
+  if (event.type === 'touchstart') {
+    event.preventDefault();
+  }
+}
+
+// Function to stop dragging
+function stopDragging() {
+  isDragging = false;
+  draggableDiv.style.cursor = 'grab';
+}
+
+// Function to update the position of the div
+function dragDiv(event) {
+  if (isDragging) {
+    let x, y;
+    if (event.type === 'touchmove') {
+      x = event.touches[0].clientX - offsetX;
+      y = event.touches[0].clientY - offsetY;
+    } else {
+      x = event.clientX - offsetX;
+      y = event.clientY - offsetY;
+    }
+
+    draggableDiv.style.left = x + 'px';
+    draggableDiv.style.top = y + 'px';
+  }
+}
+
+// Add event listeners for both desktop and mobile
+draggableDiv.addEventListener('mousedown', startDragging);
+draggableDiv.addEventListener('touchstart', startDragging);
+window.addEventListener('mouseup', stopDragging);
+window.addEventListener('touchend', stopDragging);
+window.addEventListener('mousemove', dragDiv);
+window.addEventListener('touchmove', dragDiv);
+
+  */
+  // TODO: You should really create a single document just for TODO list because there is a lot of stuff.
   //  TODO: LOOK FOR AN ALTERNATIVE METHOD use; mutation observers on the body. You do need to move this to the mudaeAutoClaim class constructor
   // TODO: I just had the best idea, instead of struggling to react to a message we could make the GUI have a category called "previous harem" which will list the last 10 harem that were sent, we will display the Name of the harem, the kakera count and the image (scaled obviously). It will be in the format of a card and if you click on the image you react to the message (msgId is stored obviously). DO NOT forget to consider the option of making the card available for 45 seconds before deleting it, instead of using the 10 harem limit.
   // Also, try using branches now
