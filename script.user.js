@@ -18,25 +18,32 @@
   'use strict';
 
   //const DEBUGGING_UI = window.location.href.includes("debugger.html")
-  const DEBUGGING_UI = window.location.hostname != "discord.com";
-  if (!DEBUGGING_UI && typeof Vencord === 'undefined') {
+  const isValidVMEnviroment = typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined';
+  const DEBUGGING_UI = window.location.hostname !== "discord.com";
+  const LOCALHOST = window.location.hostname === "127.0.0.1"
+
+  if (!DEBUGGING_UI && typeof Vencord === "undefined") {
     alert(
       "[MUDAE GUI] Install the VENCORD extension to prevent discord detection.");
     return;
+  }
+  if (LOCALHOST && !isValidVMEnviroment) {
+    alert(
+      "[MUDAE GUI] Script Error: GM.getResourceText does not exist");
   }
 
   let GUI_HTML;
   let GUI_CSS;
 
-  if (typeof(GM.getResourceText) === "undefined") {
+  if (!isValidVMEnviroment) {
     //alert("[MUDAE GUI] We could not find the function 'GM.getResourceText', please run the script with ViolentMonkey and grant GM.getResourceText").
     //return;
     GUI_HTML = await fetchUrl("https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui.html");
     GUI_CSS = await fetchUrl("https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui-style.css");
   }
   else {
-    GUI_CSS = GM.getResourceText("guicss")
-    GUI_HTML = GM.getResourceText("guihtml")
+    GUI_CSS = GM.getResourceText("guicss");
+    GUI_HTML = GM.getResourceText("guihtml");
   }
   // Move this to the future Page class
   const TOKEN = getDiscordToken();
@@ -296,6 +303,7 @@
 
         // Create GUI Modules
         this.mudaelogs = new MudaeLogs(this);
+        if (DEBUGGING_UI) console.customLog = this.mudaelogs.createLog.bind(this.mudaelogs);
         // this.mudaeautoclaim = new MudaeAutoClaim(); //! TODO: TAKE A LOOK HERE Work on this functioning later
         this.mudaelogs.createLog("Console Logic Loaded");
       }
@@ -632,10 +640,16 @@ function randomWithinRange(min, max) {
 async function fetchUrl(url) {
   try {
     const response = await fetch(url);
-    return response.text;
-  } 
+    if (!response.ok) {
+      console.error(`Error fetching url ${url}: ${response.status} ${response.statusText}`);
+      return '';
+    }
+
+    return response.text();
+  }
   catch {
-    console.error(`Error fetching url ${url}`);
+    console.error(`Error fetching ${url}: ${error}`);
+    return '';
   }
 }
 
