@@ -14,36 +14,59 @@
 // ==/UserScript==
 
 // do it
+function isValidEnviroment() {
+  const ON_DISCORD = window.location.hostname === "discord.com";
+  const VIOLENTMONKEY = typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined';
+  const VENCORD_EXISTS = typeof Vencord === "undefined";
+
+  if (ON_DISCORD) {
+    if (!VIOLENTMONKEY) {
+      alert("[MUDAE GUI] Invalid UserScript enviroment.");
+      return false
+    }
+    if (VENCORD_EXISTS) {
+      alert("[MUDAE GUI] Install the VENCORD extension to prevent discord detection.");
+      return false;
+    }
+  }
+
+  return true;
+}
+
 (async function() {
   'use strict';
 
   //const DEBUGGING_UI = window.location.href.includes("debugger.html")
-  const isValidVMEnviroment = typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined';
-  const DEBUGGING_UI = window.location.hostname !== "discord.com";
-  const LOCALHOST = window.location.hostname === "127.0.0.1"
+  // const isValidVMEnviroment = typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined';
+  // const DEBUGGING_UI = window.location.hostname !== "discord.com";
+  // const LOCALHOST = window.location.hostname === "127.0.0.1"
 
-  if (!DEBUGGING_UI && typeof Vencord === "undefined") {
-    alert(
-      "[MUDAE GUI] Install the VENCORD extension to prevent discord detection.");
+  // if (!DEBUGGING_UI && typeof Vencord === "undefined") {
+  //   alert(
+  //     "[MUDAE GUI] Install the VENCORD extension to prevent discord detection.");
+  //   return;
+  // }
+  // if (LOCALHOST && !isValidVMEnviroment) {
+  //   alert(
+  //     "[MUDAE GUI] Script Error: GM.getResourceText does not exist");
+  // }
+
+  if (!isValidEnviroment()) {
     return;
-  }
-  if (LOCALHOST && !isValidVMEnviroment) {
-    alert(
-      "[MUDAE GUI] Script Error: GM.getResourceText does not exist");
   }
 
   let GUI_HTML;
   let GUI_CSS;
 
-  if (!isValidVMEnviroment) {
-    //alert("[MUDAE GUI] We could not find the function 'GM.getResourceText', please run the script with ViolentMonkey and grant GM.getResourceText").
-    //return;
-    GUI_HTML = await fetchUrl("https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui.html");
-    GUI_CSS = await fetchUrl("https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui-style.css");
-  }
-  else {
+  const DEBUG_MODE = window.location.hostname !== "discord.com"
+
+  if (typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined') {
     GUI_CSS = GM.getResourceText("guicss");
     GUI_HTML = GM.getResourceText("guihtml");
+  }
+  else {
+    GUI_HTML = await fetchUrl("https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui.html");
+    GUI_CSS = await fetchUrl("https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui-style.css");
   }
   // Move this to the future Page class
   const TOKEN = getDiscordToken();
@@ -76,7 +99,7 @@
       // TODO: Look for the response message of mudae before sending another $m scratch that maybe, at least check if mudae is sending the "dude you have no rolls left"
       // TODO: Store the configs in Local Storage so that we don't lose it
 
-      DEBUG_MODE: false,
+      DEBUG_CONSOLE: false,
       COMMAND: '$m',
       SERVER_ID: '968552066165395496',
       CHANNEL_ID: '1009238449217347634',
@@ -138,7 +161,7 @@
       this.importStyle(GUI_CSS)
 
       // DebugMode
-      if (DEBUGGING_UI) {
+      if (DEBUG_MODE) {
         return;
       }
 
@@ -303,9 +326,9 @@
 
         // Create GUI Modules
         this.mudaelogs = new MudaeLogs(this);
-        if (DEBUGGING_UI) console.customLog = this.mudaelogs.createLog.bind(this.mudaelogs);
+        if (DEBUG_MODE) console.customLog = this.mudaelogs.createLog.bind(this.mudaelogs);
         // this.mudaeautoclaim = new MudaeAutoClaim(); //! TODO: TAKE A LOOK HERE Work on this functioning later
-        this.mudaelogs.createLog("Console Logic Loaded");
+        this.mudaelogs.createLog("Console Logic V1.1 Loaded");
       }
 
       configLogic() {
@@ -408,7 +431,7 @@
     }
 
     createDebugLog(msg) {
-      if (CONFIG.DEBUG_MODE) {
+      if (CONFIG.DEBUG_CONSOLE) {
         return this.addConsoleLog(`~ [MUDAE DEBUG] ${msg}`, "orange");
       }
     }
@@ -565,12 +588,13 @@
   // const mudaeautomessage = new MudaeAutoMessage();
   mudaelogs.createDebugLog("Debug logs enabled");
 
-  // Delete the code below this once you move waitForKeyElements to Page class
 
-  if (DEBUGGING_UI) {
+  if (DEBUG_MODE) {
+    console.warn("[MUDAE GUI] DEBUG MODE ENABLED!")
     return;
   }
 
+  // Delete the code below this once you move waitForKeyElements (the replacement of that function) to Page class
   // const urlUpdateChecker = new MutationObserver(PageHandler.correctCurrentUrl);
   const messageObserver = new MutationObserver(mudaeautoclaim.messageListener.bind(mudaeautoclaim));
   // OnMessagesLoad
