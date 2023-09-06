@@ -598,8 +598,8 @@ function isValidEnviroment() {
   // const urlUpdateChecker = new MutationObserver(PageHandler.correctCurrentUrl);
   const messageObserver = new MutationObserver(mudaeautoclaim.messageListener.bind(mudaeautoclaim));
   // OnMessagesLoad
-  // ! TODO: THE NEXT STEP IS TO MAKE THIS CODE WORK BOTH WHEN USING VIOLENTMONKEY (which will use the @resource keybord) AND WHEN WE RUN IT DIRECTLY USING A <script> TAG. (basically, if GM.getResourceText exists, use that function, otherwise,use a legacy function called fetch) don't forget to use branches.
-  // ! TODO: Alright that's done, now I need to use a @media tag- Actually, make is so the MAX-WIDTH is 600x400 and the MIN-WIDTH is 75vwx50vh. Also, you need to make it draggable on mobile as well, here is the code. (This will be a problem to debug as I'll have to change the URLs to the current branch, but I just gotta remember to change it back once I'm finished).
+  // ! TODO: Alright the next step is to make the draggui function work on mobile. For that, use the function shown below.
+  // ! TODO: Now you need to actually scale the GUI properly in small screens. For that, just add the MAX-WIDTH be 600px by 400px and the WIDTH be 75vw by 50 vw (maybe change this number based on resolution requirements). You will need to change a lot of CSS for that to work.
   /*
   const draggableDiv = document.getElementById('draggableDiv');
 let offsetX, offsetY, isDragging = false;
