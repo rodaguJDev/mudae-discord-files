@@ -308,8 +308,11 @@ function isValidEnviroment() {
 
         // Drag Logic
         guiElement.addEventListener("mousedown", this.startGUIDrag.bind(this));
+        guiElement.addEventListener("touchstart", this.startGUIDrag.bind(this));
         window.addEventListener("mousemove", this.updateGUIDrag.bind(this));
+        window.addEventListener("touchmove", this.updateGUIDrag.bind(this));
         window.addEventListener("mouseup", this.stopGUIDrag.bind(this));
+        window.addEventListener("touchend", this.stopGUIDrag.bind(this));
 
         // Window Control Logic
         closeButton.addEventListener("click", this.closeGUI.bind(this));
@@ -332,6 +335,61 @@ function isValidEnviroment() {
         if (DEBUG_MODE) console.customLog = this.mudaelogs.createLog.bind(this.mudaelogs);
         // this.mudaeautoclaim = new MudaeAutoClaim(); //! TODO: TAKE A LOOK HERE Work on this functioning later
         this.mudaelogs.createLog("Console Logic V1.1 Loaded");
+
+        /*
+        const draggableDiv = document.getElementById('draggableDiv');
+        let offsetX, offsetY, isDragging = false;
+
+        // Function to start dragging
+        function startDragging(event) {
+          if (event.type === 'touchstart') {
+            offsetX = event.touches[0].clientX - draggableDiv.getBoundingClientRect().left;
+            offsetY = event.touches[0].clientY - draggableDiv.getBoundingClientRect().top;
+          } else {
+            offsetX = event.clientX - draggableDiv.getBoundingClientRect().left;
+            offsetY = event.clientY - draggableDiv.getBoundingClientRect().top;
+          }
+
+          draggableDiv.style.cursor = 'grabbing';
+          isDragging = true;
+
+          // Prevent default dragging behavior on mobile devices
+          if (event.type === 'touchstart') {
+            event.preventDefault();
+          }
+        }
+
+        // Function to stop dragging
+        function stopDragging() {
+          isDragging = false;
+          draggableDiv.style.cursor = 'grab';
+        }
+
+        // Function to update the position of the div
+        function dragDiv(event) {
+          if (isDragging) {
+            let x, y;
+            if (event.type === 'touchmove') {
+              x = event.touches[0].clientX - offsetX;
+              y = event.touches[0].clientY - offsetY;
+            } else {
+              x = event.clientX - offsetX;
+              y = event.clientY - offsetY;
+            }
+
+            draggableDiv.style.left = x + 'px';
+            draggableDiv.style.top = y + 'px';
+          }
+        }
+
+        // Add event listeners for both desktop and mobile
+        draggableDiv.addEventListener('mousedown', startDragging);
+        draggableDiv.addEventListener('touchstart', startDragging);
+        window.addEventListener('mouseup', stopDragging);
+        window.addEventListener('touchend', stopDragging);
+        window.addEventListener('mousemove', dragDiv);
+        window.addEventListener('touchmove', dragDiv);
+        */
       }
 
       configLogic() {
@@ -363,21 +421,48 @@ function isValidEnviroment() {
 
       // GUI Drag
       startGUIDrag(event) {
-        if (event.target?.closest(".mudae-options")) {return;}
+        // Prevent the dragging from happening if we're on the Content (In the future when we do the GUI revamp, we'll limit the header to the draggable area)
+        // the .closest function is basically a "FindParentElement"
+        if (event.target?.closest(".mudae-options")) {
+          return;
+        }
+
+        let clientX;
+        let clientY;
+        if (event.type == "touchstart") {
+          clientX = event.touches[0].clientX;
+          clientY = event.touches[0].clientY;
+        }
+        else {
+          clientX = event.clientX;
+          clientY = event.clientY;
+        }
 
         this.guiDragging = true;
-
-        this.dragOffsetX = event.clientX - this.guiElement.getBoundingClientRect().left;
-        this.dragOffsetY = event.clientY - this.guiElement.getBoundingClientRect().top;
-
         this.dragMaxXPos = window.innerWidth - this.guiElement.offsetWidth;
         this.dragMaxYPos = window.innerHeight - this.guiElement.offsetHeight;
+
+        // Matematically, this.dragOffset is "canceling out" the distance of the mouse and the gui from the edge of the screen and getting the difference between the top-left corner of the GUI and the mouse position
+        this.dragOffsetX = clientX - this.guiElement.getBoundingClientRect().left;
+        this.dragOffsetY = clientY - this.guiElement.getBoundingClientRect().top;
       }
 
       updateGUIDrag(event) {
           if (this.guiElement && this.guiDragging) {
-            let x = event.clientX - this.dragOffsetX;
-            let y = event.clientY - this.dragOffsetY;
+            let clientX;
+            let clientY;
+
+            if (event.type == "touchmove") {
+              clientX = event.touches[0].clientX;
+              clientY = event.touches[0].clientY;
+            }
+            else {
+              clientX = event.clientX;
+              clientY = event.clientY;
+            }
+
+            let x = clientX - this.dragOffsetX;
+            let y = clientY - this.dragOffsetY;
 
             x = Math.min(Math.max(0, x), this.dragMaxXPos);
             y = Math.min(Math.max(0, y), this.dragMaxYPos);
@@ -600,68 +685,12 @@ function isValidEnviroment() {
   // Delete the code below this once you move waitForKeyElements (the replacement of that function) to Page class
   // const urlUpdateChecker = new MutationObserver(PageHandler.correctCurrentUrl);
   const messageObserver = new MutationObserver(mudaeautoclaim.messageListener.bind(mudaeautoclaim));
-  // OnMessagesLoad
+  // ! TODO: Create a method to prevent the script from running more than once.
   // ! TODO: Alright the next step is to make the draggui function work on mobile. For that, use the function shown below.
-  /*
-  const draggableDiv = document.getElementById('draggableDiv');
-let offsetX, offsetY, isDragging = false;
-
-// Function to start dragging
-function startDragging(event) {
-  if (event.type === 'touchstart') {
-    offsetX = event.touches[0].clientX - draggableDiv.getBoundingClientRect().left;
-    offsetY = event.touches[0].clientY - draggableDiv.getBoundingClientRect().top;
-  } else {
-    offsetX = event.clientX - draggableDiv.getBoundingClientRect().left;
-    offsetY = event.clientY - draggableDiv.getBoundingClientRect().top;
-  }
-
-  draggableDiv.style.cursor = 'grabbing';
-  isDragging = true;
-
-  // Prevent default dragging behavior on mobile devices
-  if (event.type === 'touchstart') {
-    event.preventDefault();
-  }
-}
-
-// Function to stop dragging
-function stopDragging() {
-  isDragging = false;
-  draggableDiv.style.cursor = 'grab';
-}
-
-// Function to update the position of the div
-function dragDiv(event) {
-  if (isDragging) {
-    let x, y;
-    if (event.type === 'touchmove') {
-      x = event.touches[0].clientX - offsetX;
-      y = event.touches[0].clientY - offsetY;
-    } else {
-      x = event.clientX - offsetX;
-      y = event.clientY - offsetY;
-    }
-
-    draggableDiv.style.left = x + 'px';
-    draggableDiv.style.top = y + 'px';
-  }
-}
-
-// Add event listeners for both desktop and mobile
-draggableDiv.addEventListener('mousedown', startDragging);
-draggableDiv.addEventListener('touchstart', startDragging);
-window.addEventListener('mouseup', stopDragging);
-window.addEventListener('touchend', stopDragging);
-window.addEventListener('mousemove', dragDiv);
-window.addEventListener('touchmove', dragDiv);
-
-  */
   // TODO: You should really create a single document just for TODO list because there is a lot of stuff.
   //  TODO: LOOK FOR AN ALTERNATIVE METHOD use; mutation observers on the body. You do need to move this to the mudaeAutoClaim class constructor
   // TODO: Copy Orion library's design lol
   // TODO: I just had the best idea, instead of struggling to react to a message we could make the GUI have a category called "previous harem" which will list the last 10 harem that were sent, we will display the Name of the harem, the kakera count and the image (scaled obviously). It will be in the format of a card and if you click on the image you react to the message (msgId is stored obviously). DO NOT forget to consider the option of making the card available for 45 seconds before deleting it, instead of using the 10 harem limit.
-  // Also, try using branches now
   waitForKeyElements("[class|='scrollerInner']", () => {
     const msgsElementSelector = "[class|='scrollerInner']"
     /* urlUpdateChecker.observe(
