@@ -68,8 +68,7 @@ function isValidEnviroment() {
   let GUI_CSS;
 
   const DEBUG_MODE = window.location.hostname !== "discord.com";
-  //! const BRANCH = "main";
-  const BRANCH = "setup-nouserscript-enviroment";
+  const BRANCH = "main";
   const HTML_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/gui.html`;
   const CSS_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/gui-style.css`;
 
