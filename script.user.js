@@ -133,7 +133,6 @@ function isValidEnviroment() {
       "satoru gojou",
       "lírio tellini",
       "xande",
-      "senhor veríssimo",
       "guilherme santos",
       "francisco albuquerque",
       "theodore bagwell (opc)",
