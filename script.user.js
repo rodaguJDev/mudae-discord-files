@@ -697,7 +697,6 @@ function isValidEnviroment() {
   // Delete the code below this once you move waitForKeyElements (the replacement of that function) to Page class
   // const urlUpdateChecker = new MutationObserver(PageHandler.correctCurrentUrl);
   const messageObserver = new MutationObserver(mudaeautoclaim.messageListener.bind(mudaeautoclaim));
-  // ! TODO: Create a method to prevent the script from running more than once.
   // TODO: You should really create a single document just for TODO list because there is a lot of stuff.
   //  TODO: LOOK FOR AN ALTERNATIVE METHOD use; mutation observers on the body. You do need to move this to the mudaeAutoClaim class constructor
   // TODO: Copy Orion library's design lol
