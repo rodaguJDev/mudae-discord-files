@@ -15,9 +15,14 @@
 
 // do it
 function isValidEnviroment() {
+  const ALREADY_RAN = document.head.querySelector(".mudae-gui-marker");
   const ON_DISCORD = window.location.hostname === "discord.com";
   const VIOLENTMONKEY = typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined';
   const VENCORD_EXISTS = typeof Vencord === "undefined";
+
+  if (ALREADY_RAN) {
+    return false;
+  }
 
   if (ON_DISCORD) {
     if (!VIOLENTMONKEY) {
@@ -54,6 +59,10 @@ function isValidEnviroment() {
   if (!isValidEnviroment()) {
     return;
   }
+
+  const marker = document.createElement("div");
+  marker.classList.add("mudae-gui-marker");
+  document.head.appendChild(marker);
 
   let GUI_HTML;
   let GUI_CSS;
@@ -690,7 +699,6 @@ function isValidEnviroment() {
   // const urlUpdateChecker = new MutationObserver(PageHandler.correctCurrentUrl);
   const messageObserver = new MutationObserver(mudaeautoclaim.messageListener.bind(mudaeautoclaim));
   // ! TODO: Create a method to prevent the script from running more than once.
-  // ! TODO: Alright the next step is to make the draggui function work on mobile. For that, use the function shown below.
   // TODO: You should really create a single document just for TODO list because there is a lot of stuff.
   //  TODO: LOOK FOR AN ALTERNATIVE METHOD use; mutation observers on the body. You do need to move this to the mudaeAutoClaim class constructor
   // TODO: Copy Orion library's design lol
