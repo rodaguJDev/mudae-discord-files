@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../gui-style.css">
+</head>
+<body>
+    <div class="mudae-gui"></div>
+    <script>
+        const gui = document.querySelector(".mudae-gui");
+        const url = "https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui.html"
+        fetch(url)
+        .then((response) => {
+            if (response.ok) {
+                return response.text(); // Return the Promise from response.text()
+            } else {
+                console.error(`GUI status code ${response.status}`);
+                throw new Error('Failed to fetch GUI content');
+            }
+        })
+        .then((content) => {
+            // Process the content here, e.g., assign it to innerHTML
+            gui.innerHTML = content;
+        })
+        .catch((error) => {
+            console.error(`Error fetching GUI: ${error.message}`);
+        });
+    </script>
+</body>
+</html>

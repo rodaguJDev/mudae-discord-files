@@ -58,15 +58,19 @@ function isValidEnviroment() {
   let GUI_HTML;
   let GUI_CSS;
 
-  const DEBUG_MODE = window.location.hostname !== "discord.com"
+  const DEBUG_MODE = window.location.hostname !== "discord.com";
+  //! const BRANCH = "main";
+  const BRANCH = "setup-nouserscript-enviroment";
+  const HTML_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/gui.html`;
+  const CSS_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/gui-style.css`;
 
   if (typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined') {
     GUI_CSS = GM.getResourceText("guicss");
     GUI_HTML = GM.getResourceText("guihtml");
   }
   else {
-    GUI_HTML = await fetchUrl("https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui.html");
-    GUI_CSS = await fetchUrl("https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui-style.css");
+    GUI_HTML = await fetchUrl(HTML_URL);
+    GUI_CSS = await fetchUrl(CSS_URL);
   }
   // Move this to the future Page class
   const TOKEN = getDiscordToken();
@@ -657,6 +661,7 @@ window.addEventListener('touchmove', dragDiv);
   */
   // TODO: You should really create a single document just for TODO list because there is a lot of stuff.
   //  TODO: LOOK FOR AN ALTERNATIVE METHOD use; mutation observers on the body. You do need to move this to the mudaeAutoClaim class constructor
+  // TODO: Copy Orion library's design lol
   // TODO: I just had the best idea, instead of struggling to react to a message we could make the GUI have a category called "previous harem" which will list the last 10 harem that were sent, we will display the Name of the harem, the kakera count and the image (scaled obviously). It will be in the format of a card and if you click on the image you react to the message (msgId is stored obviously). DO NOT forget to consider the option of making the card available for 45 seconds before deleting it, instead of using the 10 harem limit.
   // Also, try using branches now
   waitForKeyElements("[class|='scrollerInner']", () => {

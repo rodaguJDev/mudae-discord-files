@@ -9,8 +9,8 @@
     position: fixed;
     display: flex;
     user-select: none;
-    width: 600px;
-    height: 400px;
+    width: min(75vw, 600px);
+    height: min(50vw, 400px);
     z-index: 1000;
     overflow: hidden;
 
@@ -33,7 +33,9 @@
 
 .mudae-sidebar-header {
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    font-size: 1.5em;
+    font-size: 1.5rem;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .mudae-gui-categories {
@@ -44,6 +46,7 @@
 }
 
 .mudae-gui-category {
+    overflow: hidden;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 1em;
     padding: 5px;
