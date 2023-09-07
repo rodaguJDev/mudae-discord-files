@@ -60,7 +60,7 @@
     gap: 10px;
 }
 
-.mudae-gui-category {
+.mudae-button-category {
     white-space: nowrap;
     overflow: hidden;
     min-width: 130px;
@@ -82,7 +82,7 @@
     -o-border-radius: 5px;
 }
 
-.mudae-gui-category:active {
+.mudae-button-category:active {
     background-color: hsl(0, 0%, 80%);
 }
 

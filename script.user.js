@@ -427,6 +427,10 @@ function isValidEnviroment() {
           return;
         }
 
+        if (event.target?.closest(".mudae-button-category")) {
+          return;
+        }
+
         let clientX;
         let clientY;
         if (event.type == "touchstart") {
