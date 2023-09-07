@@ -602,7 +602,6 @@ function isValidEnviroment() {
   const messageObserver = new MutationObserver(mudaeautoclaim.messageListener.bind(mudaeautoclaim));
   // OnMessagesLoad
   // ! TODO: Alright the next step is to make the draggui function work on mobile. For that, use the function shown below.
-  // ! TODO: Now you need to actually scale the GUI properly in small screens. For that, just add the MAX-WIDTH be 600px by 400px and the WIDTH be 75vw by 50 vw (maybe change this number based on resolution requirements). You will need to change a lot of CSS for that to work.
   /*
   const draggableDiv = document.getElementById('draggableDiv');
 let offsetX, offsetY, isDragging = false;
