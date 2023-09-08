@@ -41,25 +41,11 @@ function isValidEnviroment() {
 (async function() {
   'use strict';
 
-  //const DEBUGGING_UI = window.location.href.includes("debugger.html")
-  // const isValidVMEnviroment = typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined';
-  // const DEBUGGING_UI = window.location.hostname !== "discord.com";
-  // const LOCALHOST = window.location.hostname === "127.0.0.1"
-
-  // if (!DEBUGGING_UI && typeof Vencord === "undefined") {
-  //   alert(
-  //     "[MUDAE GUI] Install the VENCORD extension to prevent discord detection.");
-  //   return;
-  // }
-  // if (LOCALHOST && !isValidVMEnviroment) {
-  //   alert(
-  //     "[MUDAE GUI] Script Error: GM.getResourceText does not exist");
-  // }
-
   if (!isValidEnviroment()) {
     return;
   }
 
+  Notification.requestPermission();
   const marker = document.createElement("div");
   marker.classList.add("mudae-gui-marker");
   document.head.appendChild(marker);
@@ -105,11 +91,6 @@ function isValidEnviroment() {
       //? Next Restart at (readonly span);
       //* Logs
       //? Console (UL)
-
-      //! Hover Effect of blue 3px outline; blue #000AF5
-
-      // TODO: Look for the response message of mudae before sending another $m scratch that maybe, at least check if mudae is sending the "dude you have no rolls left"
-      // TODO: Store the configs in Local Storage so that we don't lose it
 
       DEBUG_CONSOLE: false,
       COMMAND: '$m',
@@ -166,6 +147,25 @@ function isValidEnviroment() {
       SentryHub.getClient().close(0); // Kill reporting
       SentryHub.getScope().clear(); // Delete PII
     }*/
+
+    static waitForElement(selector, timeout=10000) {
+      return new Promise((resolve, reject) => {
+        const observer = new MutationObserver((mutationsList, observer) => {
+          const element = document.querySelector(selector);
+          if (element) {
+            observer.disconnect();
+            resolve(element);
+          }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        setTimeout(() => {
+          observer.disconnect();
+          reject(new Error(`Element with selector '${selector}' not found within ${timeout} ms.`));
+        }, timeout);
+      });
+    }
 
     static handle() {
       // Load Style
@@ -253,6 +253,7 @@ function isValidEnviroment() {
         headers: headers,
         body: JSON.stringify(payload)
       })
+      mudaelogs.add(`[DISCORD] Message sent with response status '${response.status}'`, "blue")
     }
 
     static reactToMessage(msgId) {
@@ -274,7 +275,7 @@ function isValidEnviroment() {
         headers: headers
       })
       .then(response => {
-        mudaelogs.createDebugLog(`Message reaction sent with ${response.status}`)
+        mudaelogs.addConsoleLog(`[DISCORD] Message reaction sent with response status '${response.status}'`, "blue")
       })
     }
   }
@@ -340,64 +341,14 @@ function isValidEnviroment() {
 
         // Create GUI Modules
         this.mudaelogs = new MudaeLogs(this);
-        if (DEBUG_MODE) console.customLog = this.mudaelogs.createLog.bind(this.mudaelogs);
-        // this.mudaeautoclaim = new MudaeAutoClaim(); //! TODO: TAKE A LOOK HERE Work on this functioning later
+        this.mudaeautoclaim = new MudaeAutoClaim(this);
         this.mudaelogs.createLog("Console Logic V1.1 Loaded");
 
-        /*
-        const draggableDiv = document.getElementById('draggableDiv');
-        let offsetX, offsetY, isDragging = false;
-
-        // Function to start dragging
-        function startDragging(event) {
-          if (event.type === 'touchstart') {
-            offsetX = event.touches[0].clientX - draggableDiv.getBoundingClientRect().left;
-            offsetY = event.touches[0].clientY - draggableDiv.getBoundingClientRect().top;
-          } else {
-            offsetX = event.clientX - draggableDiv.getBoundingClientRect().left;
-            offsetY = event.clientY - draggableDiv.getBoundingClientRect().top;
-          }
-
-          draggableDiv.style.cursor = 'grabbing';
-          isDragging = true;
-
-          // Prevent default dragging behavior on mobile devices
-          if (event.type === 'touchstart') {
-            event.preventDefault();
-          }
+        // Debug Mode
+        if (DEBUG_MODE) {
+          window.guiclass = this;
+          console.customLog = this.mudaelogs.createLog.bind(this.mudaelogs); // Evaluate if you need this bind statemnt
         }
-
-        // Function to stop dragging
-        function stopDragging() {
-          isDragging = false;
-          draggableDiv.style.cursor = 'grab';
-        }
-
-        // Function to update the position of the div
-        function dragDiv(event) {
-          if (isDragging) {
-            let x, y;
-            if (event.type === 'touchmove') {
-              x = event.touches[0].clientX - offsetX;
-              y = event.touches[0].clientY - offsetY;
-            } else {
-              x = event.clientX - offsetX;
-              y = event.clientY - offsetY;
-            }
-
-            draggableDiv.style.left = x + 'px';
-            draggableDiv.style.top = y + 'px';
-          }
-        }
-
-        // Add event listeners for both desktop and mobile
-        draggableDiv.addEventListener('mousedown', startDragging);
-        draggableDiv.addEventListener('touchstart', startDragging);
-        window.addEventListener('mouseup', stopDragging);
-        window.addEventListener('touchend', stopDragging);
-        window.addEventListener('mousemove', dragDiv);
-        window.addEventListener('touchmove', dragDiv);
-        */
       }
 
       configLogic() {
@@ -588,89 +539,138 @@ function isValidEnviroment() {
     }
   }
 
+  // Holy shit this worked first try how tf-
   class MudaeAutoClaim {
+    constructor(parentgui) {
+      this.parentgui = parentgui;
+      this.mudaelogs = parentgui.mudaelogs;
+      this.startListener();
+    }
+
+    async startListener() {
+      const messageObserver = new MutationObserver(this.messageListener.bind(this));
+
+      const msgNode = await PageHandler.waitForElement("[class|='scrollerInner']", 30000).catch(() => {
+        debugger;
+        window.location.reload();
+      });
+
+      messageObserver.observe(msgNode, {
+        'childList': true
+      });
+    }
+
     messageListener(mutations) {
-      for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
-          if (!node) continue;
-          this.verifyMessage(node);
+      for (const mutationRecord of mutations) {
+        for (const node of mutationRecord.addedNodes) {
+          // I assume addedNodes will return null sometimes. But I need to actually test that
+          if (!node) {
+            debugger;
+            return;
+          };
+          this.verifyNode(node);
         }
       }
     }
 
-    verifyMessage(msgElement) {
-      if (msgElement?.nodeName !== 'LI') {return};
+    verifyNode(msgElement) {
+      if (msgElement?.nodeName !== 'LI') {
+        return;
+      }
 
       const msg = msgElement.querySelector("[id|='message-content']")?.innerText;
       const haremName = this.getHaremName(msgElement);
       const msgId = Discord.getMessageId(msgElement);
 
-      mudaelogs.createDebugLog(`Element of id ${msgId} has msg=${msg}; haremName=${haremName}`)
+      // TODO: Consider either putting the 2 checks below inside isMudaeClaimable or pulling the checks from isMudaeClaimable to this verifyNode function.
+      if (!haremName || !msgId) {
+        this.mudaelogs.createDebugLog(`The element/message of ID/CLASS '${msgId || msgElement.id || msgElement.classList[0]}' does not have a haremName (or msgId)`);
+        return;
+      };
 
-      if (!haremName || !msgId) {return};
-      mudaelogs.createDebugLog(`${msg || haremName} is a valid message`)
-      if (msg && msg[0] === "$") {return};
-      mudaelogs.createDebugLog(`${msg || haremName} is not a command`)
-      if (!this.isMudaeClaimable(msgElement)) {return};
-      mudaelogs.createDebugLog(`${msg || haremName} is a valid harem`)
-      if (!WHITELIST.includes(haremName.toLowerCase())) {
-        mudaelogs.createLog(`${haremName} is NOT in your whitelist`)
+      this.mudaelogs.createDebugLog(`Message of id ${msgId} has msg=${msg}; haremName=${haremName}`)
+      if (msg && msg[0] === "$") {
+        this.mudaelogs.createDebugLog(`${msg} was a command statement`);
+        debugger; // haremName is catching this situation before this if. I will keep an eye on it in case something unexpected happens
+        return;
+      };
+
+      if (!this.isMudaeClaimable(msgElement)) {
+        this.mudaelogs.createDebugLog(`${msg || haremName} is NOT a valid harem`);
+        return;
+      };
+
+
+      if (WHITELIST.includes(haremName.toLowerCase())) {
+        this.claimHarem(msgElement);
         return;
       }
 
-      this.claimHarem(msgElement);
+      this.mudaelogs.createLog(`${haremName} is NOT in your whitelist`);
     }
 
     isMudaeClaimable(msgElement) {
       /* In order to validate the message you must do the following:
       * Assert the message contains an article element
-      * Assert the message contains a haremName
+      //  Assert the message contains a haremName
       * Assert the message contains an image from the domain mudae.net or imgur.com
       * Assert the message button count is lesser than 1
       //  Check the sidebar color (if there are any), if it is red it usually means the harem is claimed or that someone ran "$mmi" REPLACED WITH CHECKING BUTTON COUNT
       */
       const msgId = Discord.getMessageId(msgElement);
-      if (!msgElement.querySelector('article')) {
-        mudaelogs.createDebugLog(`Message of ID ${msgId} does not have an article.`);
+      if (!msgElement.querySelector('article')) { //* Check for obsoleteness later (since it stops any message that does not have an embedAuthorName, it would, by proxy, stop anything without an article)
+        this.mudaelogs.createDebugLog(`Message of ID ${msgId} does not have an article.`);
+        debugger;
         return false;
       }
-
+/*
+      ? This one was 100% obsolete, we literally scan haremName up in the chain
       const haremName = this.getHaremName(msgElement)
       if (!haremName) {
         mudaelogs.createDebugLog(`Message of ID ${msgId} does not have a harem name.`);
         return false;
       }
-
+*/
       const imageURL = msgElement.querySelector("[class^='originalLink']")?.href;
+      //* is this necessary? Like, if it has an article with an image, but does not have an image from imgur or mudae.net, a false negative could occour
       if (!(imageURL?.includes('https://mudae.net')
-      || imageURL?.includes("https://imgur.com")))
+        || imageURL?.includes("https://imgur.com")))
       {
-        mudaelogs.createDebugLog(`Message of ID ${msgId} does not have a valid img link.`);
-        return false
+        this.mudaelogs.createDebugLog(`Message of ID ${msgId} does not have a valid img link.`);
+        return false;
       }
 
       let buttons = msgElement.querySelector('button')?.parentNode?.children;
-      if (buttons?.length && buttons.length > 1) {
-        mudaelogs.createDebugLog(`Message of ID ${msgId} contains too many buttons`);
-        return false
+      if (buttons?.length > 1) { // Just FYI, I removed the double check that ensure buttons existed.
+        this.mudaelogs.createDebugLog(`Message of ID ${msgId} contains too many buttons`);
+        return false;
       }
 
-      mudaelogs.createDebugLog(`Validating Message ${msgId}`);
+      // this.mudaelogs.createDebugLog(`Validating Message ${msgId}`);
       return true;
     }
 
     claimHarem(msgElement) {
-      mudaelogs.createLog(`Claiming ${this.getHaremName(msgElement)}`);
       const buttons = msgElement.querySelector('button')?.parentNode?.children;
       const messageId = Discord.getMessageId(msgElement);
+      const haremName = this.getHaremName(msgElement);
+
+      this.mudaelogs.createLog(`Claiming ${this.getHaremName(msgElement)}...`);
 
       if (buttons?.length >= 1) {
-        mudaelogs.createDebugLog(`Pressing ${messageId} button`);
+        this.mudaelogs.createDebugLog(`Pressing ${messageId} button`);
         buttons[0].click();
       }
 
       Discord.reactToMessage(messageId);
-      mudaelogs.createDebugLog(`Finished claiming ${messageId}`);
+
+      if (Notification.permission != "denied") {
+        new Notification(`[MUDAE GUI] Hey! We just caught '${haremName}'`,
+        {
+          body: "We recommend you check out to see if it was indeed successful"
+        }) // Maybe if you want to add an icon. Read the MDN docs
+      }
+      this.mudaelogs.createDebugLog(`Finished claiming ${messageId} (${haremName})`);
     }
 
     getHaremName(msgElement) {
@@ -679,62 +679,21 @@ function isValidEnviroment() {
   }
 
   // Before Anything Loads Load
-  // TODO: Transform this code into a constructor for pagehandler
+  // TODO: Change this code into a constructor for pagehandler
   // TODO: Rename PageHandler to Page; make it where it is stored localstorage, settings, etc. Then it'll make sense to create a new Page()
   PageHandler.handle();
   const mudaegui = new MudaeGUI();
   const mudaelogs = mudaegui.mudaelogs;
-  const mudaeautoclaim = new MudaeAutoClaim(); // make subclass to mudaegui
   // const mudaeautomessage = new MudaeAutoMessage();
   mudaelogs.createDebugLog("Debug logs enabled");
 
 
-  if (DEBUG_MODE) {
-    console.warn("[MUDAE GUI] DEBUG MODE ENABLED!")
-    return;
-  }
-
-  // Delete the code below this once you move waitForKeyElements (the replacement of that function) to Page class
-  // const urlUpdateChecker = new MutationObserver(PageHandler.correctCurrentUrl);
-  const messageObserver = new MutationObserver(mudaeautoclaim.messageListener.bind(mudaeautoclaim));
   // TODO: You should really create a single document just for TODO list because there is a lot of stuff.
-  //  TODO: LOOK FOR AN ALTERNATIVE METHOD use; mutation observers on the body. You do need to move this to the mudaeAutoClaim class constructor
-  // TODO: Copy Orion library's design lol
+  // TODO: Look for the response message of mudae before sending another $m scratch that maybe, at leastcheck if mudae is sending the "dude you have no rolls left"
+  // TODO: Store the configs in Local Storage so that we don't lose it, that will be the defining factor as to how we'll link the GUI control panel to the rest of the code.
   // TODO: I just had the best idea, instead of struggling to react to a message we could make the GUI have a category called "previous harem" which will list the last 10 harem that were sent, we will display the Name of the harem, the kakera count and the image (scaled obviously). It will be in the format of a card and if you click on the image you react to the message (msgId is stored obviously). DO NOT forget to consider the option of making the card available for 45 seconds before deleting it, instead of using the 10 harem limit.
-  waitForKeyElements("[class|='scrollerInner']", () => {
-    const msgsElementSelector = "[class|='scrollerInner']"
-    /* urlUpdateChecker.observe(
-      document.head.querySelector("title"),
-        {
-          childList: true
-        }
-    ) */
-
-    messageObserver.observe(
-        document.querySelector(msgsElementSelector),
-        {childList: true}
-    )
-
-    // mudaeautomessage.startMessageInterval(CONFIG.COMMAND);
-    mudaelogs.createDebugLog("Mutation Observers online")
-  }, true)
-
-  /*
-  TODO: implement this in MudaeAutoClaim
-  function waitForElement(selector) {
-    return new Promise((resolve) => {
-      const observer = new MutationObserver((mutationsList, observer) => {
-        const element = document.querySelector(selector);
-        if (element) {
-          observer.disconnect();
-          resolve(element);
-        }
-      });
-
-      observer.observe(document.body, { childList: true, subtree: true });
-    });
-  } */
-
+  // TODO: If you really cannot improve the current GUI format, then copy Orion Library's model
+  // TODO: After creating the other functions, make the console prettier, maybe allow for colors to be used, separate debugConsole from normalConsole. Maybe scratch those 2 terms and make it so Console is DebugConsole, and anything that would come from normalConsole is sent to the autoclaimcard idea above and just make claiming as another debug feature
 })();
 
 function getDiscordToken() {
