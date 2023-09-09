@@ -667,8 +667,9 @@ function isValidEnviroment() {
       if (Notification.permission != "denied") {
         new Notification(`[MUDAE GUI] Hey! We just caught '${haremName}'`,
         {
-          body: "We recommend you check out to see if it was indeed successful"
-        }) // Maybe if you want to add an icon. Read the MDN docs
+          body: "We recommend you check out to see if it was indeed successful",
+          icon: "https://cdn.discordapp.com/attachments/1046111237966151772/1149569488526778389/templogo.png"
+        })
       }
       this.mudaelogs.createDebugLog(`Finished claiming ${messageId} (${haremName})`);
     }
@@ -678,7 +679,6 @@ function isValidEnviroment() {
     }
   }
 
-  // Before Anything Loads Load
   // TODO: Change this code into a constructor for pagehandler
   // TODO: Rename PageHandler to Page; make it where it is stored localstorage, settings, etc. Then it'll make sense to create a new Page()
   PageHandler.handle();
@@ -686,9 +686,7 @@ function isValidEnviroment() {
   const mudaelogs = mudaegui.mudaelogs;
   // const mudaeautomessage = new MudaeAutoMessage();
   mudaelogs.createDebugLog("Debug logs enabled");
-
-
-  // TODO: You should really create a single document just for TODO list because there is a lot of stuff.
+  // ! TODO: The next step is to make the PageHandler class just "Page". Check the other TODOs to view what you have to do.
   // TODO: Look for the response message of mudae before sending another $m scratch that maybe, at leastcheck if mudae is sending the "dude you have no rolls left"
   // TODO: Store the configs in Local Storage so that we don't lose it, that will be the defining factor as to how we'll link the GUI control panel to the rest of the code.
   // TODO: I just had the best idea, instead of struggling to react to a message we could make the GUI have a category called "previous harem" which will list the last 10 harem that were sent, we will display the Name of the harem, the kakera count and the image (scaled obviously). It will be in the format of a card and if you click on the image you react to the message (msgId is stored obviously). DO NOT forget to consider the option of making the card available for 45 seconds before deleting it, instead of using the 10 harem limit.
