@@ -8,7 +8,6 @@
 // @description Auto Claim desired mudae characters as soon as they show up
 // @grant       GM.getResourceText
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js
-// @require     https://gist.github.com/raw/2625891/waitForKeyElements.js
 // @resource    guihtml https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui.html
 // @resource    guicss https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui-style.css
 // ==/UserScript==
@@ -71,24 +70,30 @@ function isValidEnviroment() {
   // TODO: Config & whitelist will be within the Page class
   const CONFIG = {
       //? GUI Elements:
-      //* Auto Claim
+      //* Automation
+      // h3 Claims
       //? Claim using Character Whitelist (checkbox);
       //? Claim using Series Whitelist (checkbox);
       //? Claim using minimum Kakera (checkbox);
       //? Claim Whishlisted (by anyone) (checkbox);
-      //* Auto Command
-      //? AutoSendCommand(checkbox)
-      //? Send Command (button)
-      //? CommandToSend (text)
-      //? CommandSendCount (default: 8)
-      //* Whitelist Settings
+      // h3 Rolls
+      //? AutoRoll(checkbox)
+      //? RollCommand (text)
+      //? RollCommandCount (default: 8)
+      //? Roll Will be sent at: (readonly span);
+      //* Whitelist
       //? Whitelisted Characters(textbox with values saved to localStorage)
       //? Whitelisted Series(textbox with values saved to localStorage)
       //? Minimum Kakera (number)
       //* Utilities
+      // h3 Rolls
+      //? Roll (button)
       //? Recharge Rolls (button, sends $daily $rolls $dk);
-      //? NextMessageSendAt(readonly span);
-      //? Next Restart at (readonly span);
+      // h3 Page
+      //? Enforce URL (checkbox)
+      //? Page will be refreshed at: (readonly span);
+      //* Claimables
+      //? [A list of available harems to claim in the moment]
       //* Logs
       //? Console (UL)
 
@@ -134,7 +139,7 @@ function isValidEnviroment() {
       "shin seyoung"
   ]
 
-  class PageHandler {
+  class Page {
     // make this class not static
     /*static noTrack() {
       // No more global processors
@@ -147,8 +152,26 @@ function isValidEnviroment() {
       SentryHub.getClient().close(0); // Kill reporting
       SentryHub.getScope().clear(); // Delete PII
     }*/
+    constructor(scheduleRefresh, enforceUrl) {
+      // Page "global" variables
+      this.haltRefresh = false;
+      // Load Style
+      this.importStyle(GUI_CSS)
 
-    static waitForElement(selector, timeout=10000) {
+      // This will be here while we do not have MudaeAUtoMessage, that will complicate things since we don't want to refresh while sending messages, and at the same time if it's off, it should refresh after some time.
+      if (scheduleRefresh) {
+        setInterval(this.attemptRefresh, 1800);
+      }
+
+      // Ensuring we are at the correct URL
+      if (enforceUrl) {
+        const titleObserve = new MutationObserver(this.correctCurrentUrl);
+        titleObserve.observe(document.querySelector("head title"), {childList: true})
+        this.correctCurrentUrl();
+      }
+    }
+
+    waitForElement(selector, timeout=10000) {
       return new Promise((resolve, reject) => {
         const observer = new MutationObserver((mutationsList, observer) => {
           const element = document.querySelector(selector);
@@ -167,25 +190,7 @@ function isValidEnviroment() {
       });
     }
 
-    static handle() {
-      // Load Style
-      this.importStyle(GUI_CSS)
-
-      // DebugMode
-      if (DEBUG_MODE) {
-        return;
-      }
-
-      // This will be here while we do not have MudaeAUtoMessage, that will complicate things since we don't want to refresh while sending messages, and at the same time if it's off, it should refresh after some time.
-      setInterval(PageHandler.attemptRefresh, 1800);
-
-      // Ensuring we are at the correct URL
-      const titleObserve = new MutationObserver(this.correctCurrentUrl);
-      titleObserve.observe(document.querySelector("head title"), {childList: true})
-      this.correctCurrentUrl();
-    }
-
-    static attemptRefresh() {
+    attemptRefresh() {
       // TODO: Rewrite: get page delay and wait it, after that check a variable that is false when something is stopping the page from refreshing (page.allowRefresh). Use a setInterval that will be checkijg that variable after the intiial delay, if it is true, run window.location.reload. That way, we just need to run scheduleRefresh[rename func] as an async.
       const hourToMSCoefficient = 60*60*1000;
       const currentPageTime = document.timeline.currentTime
@@ -202,7 +207,7 @@ function isValidEnviroment() {
       }, randomWithinRange(MIN, MAX)) */
     }
 
-    static correctCurrentUrl() {
+    correctCurrentUrl() {
       const urlPathSegments = window.location.pathname.split('/');
 
       if ( urlPathSegments[1] !== "channels"
@@ -214,7 +219,7 @@ function isValidEnviroment() {
       }
     }
 
-    static importStyle(style) {
+    importStyle(style) {
       const currentStyle = document.head.querySelector("#mudae-custom-style")
 
       if (currentStyle) {
@@ -534,7 +539,7 @@ function isValidEnviroment() {
             }, randomWithinRange(1000, 2000)));
           }
 
-          PageHandler.attemptRefresh();
+          page.attemptRefresh();
       }
     }
   }
@@ -542,6 +547,10 @@ function isValidEnviroment() {
   // Holy shit this worked first try how tf-
   class MudaeAutoClaim {
     constructor(parentgui) {
+      if (DEBUG_MODE) {
+        return;
+      }
+
       this.parentgui = parentgui;
       this.mudaelogs = parentgui.mudaelogs;
       this.startListener();
@@ -550,7 +559,7 @@ function isValidEnviroment() {
     async startListener() {
       const messageObserver = new MutationObserver(this.messageListener.bind(this));
 
-      const msgNode = await PageHandler.waitForElement("[class|='scrollerInner']", 30000).catch(() => {
+      const msgNode = await page.waitForElement("[class|='scrollerInner']", 30000).catch(() => {
         debugger;
         window.location.reload();
       });
@@ -623,14 +632,7 @@ function isValidEnviroment() {
         debugger;
         return false;
       }
-/*
-      ? This one was 100% obsolete, we literally scan haremName up in the chain
-      const haremName = this.getHaremName(msgElement)
-      if (!haremName) {
-        mudaelogs.createDebugLog(`Message of ID ${msgId} does not have a harem name.`);
-        return false;
-      }
-*/
+
       const imageURL = msgElement.querySelector("[class^='originalLink']")?.href;
       //* is this necessary? Like, if it has an article with an image, but does not have an image from imgur or mudae.net, a false negative could occour
       if (!(imageURL?.includes('https://mudae.net')
@@ -642,7 +644,8 @@ function isValidEnviroment() {
 
       let buttons = msgElement.querySelector('button')?.parentNode?.children;
       if (buttons?.length > 1) { // Just FYI, I removed the double check that ensure buttons existed.
-        this.mudaelogs.createDebugLog(`Message of ID ${msgId} contains too many buttons`);
+        // this.mudaelogs.createDebugLog(`Message of ID ${msgId} contains too many buttons`);
+        this.mudaelogs.createLog(`Stopped claimimg ${haremName} because it had too many buttons`)
         return false;
       }
 
@@ -681,13 +684,18 @@ function isValidEnviroment() {
 
   // TODO: Change this code into a constructor for pagehandler
   // TODO: Rename PageHandler to Page; make it where it is stored localstorage, settings, etc. Then it'll make sense to create a new Page()
-  PageHandler.handle();
+  // PageHandler.handle();
+  const page = new Page(!DEBUG_MODE, !DEBUG_MODE);
   const mudaegui = new MudaeGUI();
   const mudaelogs = mudaegui.mudaelogs;
   // const mudaeautomessage = new MudaeAutoMessage();
   mudaelogs.createDebugLog("Debug logs enabled");
   // ! TODO: The next step is to make the PageHandler class just "Page". Check the other TODOs to view what you have to do.
-  // TODO: Look for the response message of mudae before sending another $m scratch that maybe, at leastcheck if mudae is sending the "dude you have no rolls left"
+  // ! TODO: After that, you should get the GUI to remember the options you chose
+  // ! TODO: After that, start working on MudaeAutoRoll
+  // TODO: See if you can make this modular using @require from a github page.
+  // TODO: Maybe save every event listener to a list, and once Close is pressed disconnect them.
+  // TODO: Look for the response message of mudae before sending another $m scratch that maybe, at leastcheck if mudae is sending the "dude you have no rolls left". With that, the message listener should be readly available to every class through the Discord class. (Right now only MudaeAutoClaim has it)
   // TODO: Store the configs in Local Storage so that we don't lose it, that will be the defining factor as to how we'll link the GUI control panel to the rest of the code.
   // TODO: I just had the best idea, instead of struggling to react to a message we could make the GUI have a category called "previous harem" which will list the last 10 harem that were sent, we will display the Name of the harem, the kakera count and the image (scaled obviously). It will be in the format of a card and if you click on the image you react to the message (msgId is stored obviously). DO NOT forget to consider the option of making the card available for 45 seconds before deleting it, instead of using the 10 harem limit.
   // TODO: If you really cannot improve the current GUI format, then copy Orion Library's model
