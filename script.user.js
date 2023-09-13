@@ -12,97 +12,20 @@
 // @resource    guicss https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui-style.css
 // ==/UserScript==
 
-// do it
-function isValidEnviroment() {
-  const ALREADY_RAN = document.head.querySelector(".mudae-gui-marker");
-  const ON_DISCORD = window.location.hostname === "discord.com";
-  const VIOLENTMONKEY = typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined';
-  const VENCORD_EXISTS = typeof Vencord === "undefined";
-
-  if (ALREADY_RAN) {
-    return false;
-  }
-
-  if (ON_DISCORD) {
-    if (!VIOLENTMONKEY) {
-      alert("[MUDAE GUI] Invalid UserScript enviroment.");
-      return false
-    }
-    if (VENCORD_EXISTS) {
-      alert("[MUDAE GUI] Install the VENCORD extension to prevent discord detection.");
-      return false;
-    }
-  }
-
-  return true;
-}
-
-(async function() {
-  'use strict';
-
-  if (!isValidEnviroment()) {
-    return;
-  }
-
-  Notification.requestPermission();
-  const marker = document.createElement("div");
-  marker.classList.add("mudae-gui-marker");
-  document.head.appendChild(marker);
-
-  let GUI_HTML;
-  let GUI_CSS;
-
-  const DEBUG_MODE = window.location.hostname !== "discord.com";
-  const BRANCH = "main";
-  const HTML_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/gui.html`;
-  const CSS_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/gui-style.css`;
-
-  if (typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined') {
-    GUI_CSS = GM.getResourceText("guicss");
-    GUI_HTML = GM.getResourceText("guihtml");
-  }
-  else {
-    GUI_HTML = await fetchUrl(HTML_URL);
-    GUI_CSS = await fetchUrl(CSS_URL);
-  }
-  // Move this to the future Page class
-  const TOKEN = getDiscordToken();
-  // TODO: Config & whitelist will be within the Page class
-  const CONFIG = {
-      //? GUI Elements:
-      //* Automation
-      // h3 Claims
-      //? Claim using Character Whitelist (checkbox);
-      //? Claim using Series Whitelist (checkbox);
-      //? Claim using minimum Kakera (checkbox);
-      //? Claim Whishlisted (by anyone) (checkbox);
-      // h3 Rolls
-      //? AutoRoll(checkbox)
-      //? RollCommand (text)
-      //? RollCommandCount (default: 8)
-      //? Roll Will be sent at: (readonly span);
-      //* Whitelist
-      //? Whitelisted Characters(textbox with values saved to localStorage)
-      //? Whitelisted Series(textbox with values saved to localStorage)
-      //? Minimum Kakera (number)
-      //* Utilities
-      // h3 Rolls
-      //? Roll (button)
-      //? Recharge Rolls (button, sends $daily $rolls $dk);
-      // h3 Page
-      //? Enforce URL (checkbox)
-      //? Page will be refreshed at: (readonly span);
-      //* Claimables
-      //? [A list of available harems to claim in the moment]
-      //* Logs
-      //? Console (UL)
-
-      DEBUG_CONSOLE: false,
-      COMMAND: '$m',
-      SERVER_ID: '968552066165395496',
-      CHANNEL_ID: '1009238449217347634',
-  }
-  const WHITELIST = [
+// fix indentation, it might also be broken now
+  class Page {
+    constructor(scheduleRefresh, enforceUrl) {
+      // Page "global" variables
+      this.haltRefresh = false;
+      // Load Style
+      this.importStyle(GUI_CSS)
+      this.CONFIG = {
+          DEBUG_CONSOLE: false,
+          COMMAND: '$m',
+          SERVER_ID: '968552066165395496',
+          CHANNEL_ID: '1009238449217347634'
+      }
+      this.WHITELIST = [
       "uzi",
       // "mudae-chan",
       "doll (md)",
@@ -138,25 +61,6 @@ function isValidEnviroment() {
       "diavolo",
       "shin seyoung"
   ]
-
-  class Page {
-    // make this class not static
-    /*static noTrack() {
-      // No more global processors
-      window.__SENTRY__.globalEventProcessors?.splice(0, window.__SENTRY__.globalEventProcessors.length);
-
-      // Kill sentry logs
-      window.__SENTRY__.logger.disable();
-
-      const SentryHub = window.DiscordSentry.getCurrentHub();
-      SentryHub.getClient().close(0); // Kill reporting
-      SentryHub.getScope().clear(); // Delete PII
-    }*/
-    constructor(scheduleRefresh, enforceUrl) {
-      // Page "global" variables
-      this.haltRefresh = false;
-      // Load Style
-      this.importStyle(GUI_CSS)
 
       // This will be here while we do not have MudaeAUtoMessage, that will complicate things since we don't want to refresh while sending messages, and at the same time if it's off, it should refresh after some time.
       if (scheduleRefresh) {
@@ -211,11 +115,11 @@ function isValidEnviroment() {
       const urlPathSegments = window.location.pathname.split('/');
 
       if ( urlPathSegments[1] !== "channels"
-        || urlPathSegments[2] !== CONFIG.SERVER_ID
-        || urlPathSegments[3] !== CONFIG.CHANNEL_ID)
+        || urlPathSegments[2] !== page.CONFIG.SERVER_ID
+        || urlPathSegments[3] !== page.CONFIG.CHANNEL_ID)
       {
         window.location.href =
-        `https://discord.com/channels/${CONFIG.SERVER_ID}/${CONFIG.CHANNEL_ID}`;
+        `https://discord.com/channels/${page.CONFIG.SERVER_ID}/${page.CONFIG.CHANNEL_ID}`;
       }
     }
 
@@ -243,7 +147,7 @@ function isValidEnviroment() {
     static sendMessage(message) {
       //TODO: DO NOT complete this function before addressing the missing features of scheduleMessages
       mudaelogs.createDebugLog(`Sending ${message}...`);
-      let url = `https://discord.com/api/v9/channels/${CONFIG.CHANNEL_ID}/messages`;
+      let url = `https://discord.com/api/v9/channels/${page.CONFIG.CHANNEL_ID}/messages`;
       let headers = {
         'Authorization': TOKEN,
         'Content-Type': "application/json",
@@ -269,7 +173,7 @@ function isValidEnviroment() {
       const api = 'https://discord.com/api/v9/channels/'
       const emoji = "%F0%9F%A4%97/%40me";
       const url =
-      `${api}${CONFIG.CHANNEL_ID}/messages/${msgId}/reactions/${emoji}`
+      `${api}${page.CONFIG.CHANNEL_ID}/messages/${msgId}/reactions/${emoji}`
       const headers = {
         'Authorization': TOKEN,
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
@@ -487,7 +391,7 @@ function isValidEnviroment() {
     }
 
     createDebugLog(msg) {
-      if (CONFIG.DEBUG_CONSOLE) {
+      if (page.CONFIG.DEBUG_CONSOLE) {
         return this.addConsoleLog(`~ [MUDAE DEBUG] ${msg}`, "orange");
       }
     }
@@ -543,7 +447,6 @@ function isValidEnviroment() {
       }
     }
   }
-
   // Holy shit this worked first try how tf-
   class MudaeAutoClaim {
     constructor(parentgui) {
@@ -610,7 +513,7 @@ function isValidEnviroment() {
       };
 
 
-      if (WHITELIST.includes(haremName.toLowerCase())) {
+      if (page.WHITELIST.includes(haremName.toLowerCase())) {
         this.claimHarem(msgElement);
         return;
       }
@@ -668,7 +571,7 @@ function isValidEnviroment() {
 
       Discord.reactToMessage(messageId);
 
-      if (Notification.permission != "denied") {
+      if (typeof Notification != "undefined" && Notification.permission != "denied") {
         new Notification(`[MUDAE GUI] Hey! We just caught '${haremName}'`,
         {
           body: "We recommend you check out to see if it was indeed successful",
@@ -683,25 +586,29 @@ function isValidEnviroment() {
     }
   }
 
-  // TODO: Change this code into a constructor for pagehandler
-  // TODO: Rename PageHandler to Page; make it where it is stored localstorage, settings, etc. Then it'll make sense to create a new Page()
-  // PageHandler.handle();
-  const page = new Page(!DEBUG_MODE, !DEBUG_MODE);
-  const mudaegui = new MudaeGUI();
-  const mudaelogs = mudaegui.mudaelogs;
-  // const mudaeautomessage = new MudaeAutoMessage();
-  mudaelogs.createDebugLog("Debug logs enabled");
-  // ! TODO: The next step is to make the PageHandler class just "Page". Check the other TODOs to view what you have to do.
-  // ! TODO: After that, you should get the GUI to remember the options you chose
-  // ! TODO: After that, start working on MudaeAutoRoll
-  // TODO: See if you can make this modular using @require from a github page.
-  // TODO: Maybe save every event listener to a list, and once Close is pressed disconnect them.
-  // TODO: Look for the response message of mudae before sending another $m scratch that maybe, at leastcheck if mudae is sending the "dude you have no rolls left". With that, the message listener should be readly available to every class through the Discord class. (Right now only MudaeAutoClaim has it)
-  // TODO: Store the configs in Local Storage so that we don't lose it, that will be the defining factor as to how we'll link the GUI control panel to the rest of the code.
-  // TODO: I just had the best idea, instead of struggling to react to a message we could make the GUI have a category called "previous harem" which will list the last 10 harem that were sent, we will display the Name of the harem, the kakera count and the image (scaled obviously). It will be in the format of a card and if you click on the image you react to the message (msgId is stored obviously). DO NOT forget to consider the option of making the card available for 45 seconds before deleting it, instead of using the 10 harem limit.
-  // TODO: If you really cannot improve the current GUI format, then copy Orion Library's model
-  // TODO: After creating the other functions, make the console prettier, maybe allow for colors to be used, separate debugConsole from normalConsole. Maybe scratch those 2 terms and make it so Console is DebugConsole, and anything that would come from normalConsole is sent to the autoclaimcard idea above and just make claiming as another debug feature
-})();
+function isValidEnviroment() {
+  const ALREADY_RAN = document.head.querySelector(".mudae-gui-marker");
+  const ON_DISCORD = window.location.hostname === "discord.com";
+  const VIOLENTMONKEY = typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined';
+  const VENCORD_EXISTS = typeof Vencord === "undefined";
+
+  if (ALREADY_RAN) {
+    return false;
+  }
+
+  if (ON_DISCORD) {
+    if (!VIOLENTMONKEY) {
+      alert("[MUDAE GUI] Invalid UserScript enviroment.");
+      return false
+    }
+    if (VENCORD_EXISTS) {
+      alert("[MUDAE GUI] Install the VENCORD extension to prevent discord detection.");
+      return false;
+    }
+  }
+
+  return true;
+}
 
 function getDiscordToken() {
   try {
@@ -723,9 +630,11 @@ function getDiscordToken() {
   return m.find(m => m?.exports?.default?.getToken !== void 0)
     .exports.default.getToken();
 }
+
 function randomWithinRange(min, max) {
   return Math.floor(Math.random()*(max-min+1)) + min;
 }
+
 async function fetchUrl(url) {
   try {
     const response = await fetch(url);
@@ -742,8 +651,98 @@ async function fetchUrl(url) {
   }
 }
 
+const DEBUG_MODE = window.location.hostname !== "discord.com";
+const BRANCH = "main";
+const HTML_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/gui.html`;
+const CSS_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/gui-style.css`;
+
+let GUI_HTML;
+let GUI_CSS;
+let TOKEN;
+let page, mudaegui, mudaelogs;
+(async function() {
+  'use strict';
+
+  // Move this to the future Page class
+  // TODO: Config & whitelist will be within the Page class
+  // move classes outside of function
+
+  // TODO: Change this code into a constructor for pagehandler
+  // TODO: Rename PageHandler to Page; make it where it is stored localstorage, settings, etc. Then it'll make sense to create a new Page()
+  // PageHandler.handle();
+  
+
+  if (!isValidEnviroment()) {
+    return;
+  }
+
+  if (typeof Notification != "undefined")
+    Notification.requestPermission();
+  const marker = document.createElement("div");
+  marker.classList.add("mudae-gui-marker");
+  document.head.appendChild(marker);
+  
+  TOKEN = DEBUG_MODE ? "" : getDiscordToken();
+
+  if (typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined') {
+    GUI_CSS = GM.getResourceText("guicss");
+    GUI_HTML = GM.getResourceText("guihtml");
+  }
+  else if (DEBUG_MODE) {
+    GUI_HTML = await fetchUrl(HTML_URL);
+    GUI_CSS = await fetchUrl(CSS_URL);
+  }
+  else {
+    throw new Error("Unable to get GUI resources");
+  }
+  
+  page = new Page(!DEBUG_MODE, !DEBUG_MODE);
+  mudaegui = new MudaeGUI();
+  mudaelogs = mudaegui.mudaelogs;
+  // const mudaeautomessage = new MudaeAutoMessage();
+  mudaelogs.createDebugLog("Debug logs enabled");
+  // ! TODO: The next step is to make the PageHandler class just "Page". Check the other TODOs to view what you have to do.
+  // ! TODO: After that, you should get the GUI to remember the options you chose
+  // ! TODO: After that, start working on MudaeAutoRoll
+  // TODO: See if you can make this modular using @require from a github page.
+  // TODO: Maybe save every event listener to a list, and once Close is pressed disconnect them.
+  // TODO: Look for the response message of mudae before sending another $m scratch that maybe, at leastcheck if mudae is sending the "dude you have no rolls left". With that, the message listener should be readly available to every class through the Discord class. (Right now only MudaeAutoClaim has it)
+  // TODO: Store the configs in Local Storage so that we don't lose it, that will be the defining factor as to how we'll link the GUI control panel to the rest of the code.
+  // TODO: I just had the best idea, instead of struggling to react to a message we could make the GUI have a category called "previous harem" which will list the last 10 harem that were sent, we will display the Name of the harem, the kakera count and the image (scaled obviously). It will be in the format of a card and if you click on the image you react to the message (msgId is stored obviously). DO NOT forget to consider the option of making the card available for 45 seconds before deleting it, instead of using the 10 harem limit.
+  // TODO: If you really cannot improve the current GUI format, then copy Orion Library's model
+  // TODO: After creating the other functions, make the console prettier, maybe allow for colors to be used, separate debugConsole from normalConsole. Maybe scratch those 2 terms and make it so Console is DebugConsole, and anything that would come from normalConsole is sent to the autoclaimcard idea above and just make claiming as another debug feature
+})();
+
 
 // TODO: Claim anything that is wished by someone (make it optional)
 // TODO: create a "Series" wishlist filter so that if it is from a specific series it claims
 // TODO: Finish the "GUI" element so you don't have to edit the code to modify configs
 // TODO: Fix Indentation
+
+//? GUI Elements:
+      //* Automation
+      // h3 Claims
+      //? Claim using Character Whitelist (checkbox);
+      //? Claim using Series Whitelist (checkbox);
+      //? Claim using minimum Kakera (checkbox);
+      //? Claim Whishlisted (by anyone) (checkbox);
+      // h3 Rolls
+      //? AutoRoll(checkbox)
+      //? RollCommand (text)
+      //? RollCommandCount (default: 8)
+      //? Roll Will be sent at: (readonly span);
+      //* Whitelist
+      //? Whitelisted Characters(textbox with values saved to localStorage)
+      //? Whitelisted Series(textbox with values saved to localStorage)
+      //? Minimum Kakera (number)
+      //* Utilities
+      // h3 Rolls
+      //? Roll (button)
+      //? Recharge Rolls (button, sends $daily $rolls $dk);
+      // h3 Page
+      //? Enforce URL (checkbox)
+      //? Page will be refreshed at: (readonly span);
+      //* Claimables
+      //? [A list of available harems to claim in the moment]
+      //* Logs
+      //? Console (UL)
