@@ -633,6 +633,7 @@ function isValidEnviroment() {
         return false;
       }
 
+      const haremName = this.getHaremName(msgElement)
       const imageURL = msgElement.querySelector("[class^='originalLink']")?.href;
       //* is this necessary? Like, if it has an article with an image, but does not have an image from imgur or mudae.net, a false negative could occour
       if (!(imageURL?.includes('https://mudae.net')
