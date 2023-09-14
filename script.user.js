@@ -18,7 +18,7 @@ class Page {
     // Page "global" variables
     this.haltRefresh = false;
     // Load Style
-    this.importStyle(GUI_CSS)
+    this.importStyle(GUI_CSS);
     this.CONFIG = {
       DEBUG_CONSOLE: false,
       COMMAND: '$m',
@@ -61,6 +61,8 @@ class Page {
       "diavolo",
       "shin seyoung"
     ]
+    this.localstorage = this.getLocalStorage();
+    console.log(this.localstorage)
 
     // This will be here while we do not have MudaeAUtoMessage, that will complicate things since we don't want to refresh while sending messages, and at the same time if it's off, it should refresh after some time.
     if (scheduleRefresh) {
@@ -73,6 +75,18 @@ class Page {
       titleObserve.observe(document.querySelector("head title"), {childList: true})
       this.correctCurrentUrl();
     }
+  }
+  
+  getLocalStorage() {
+    if (DEBUG_MODE) {
+      return localstorage;
+    }
+    
+    const ifr = document.createElement("iframe");
+    document.head.append(ifr);
+    const lstorage = Object.getOwnPropertyDescriptor(ifr.contentWindow, "localstorage");
+    ifr.remove();
+    return lstorage;
   }
 
   waitForElement(selector, timeout=10000) {
