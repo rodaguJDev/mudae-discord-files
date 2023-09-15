@@ -12,16 +12,16 @@
 // @resource    guicss https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui-style.css
 // ==/UserScript==
 
-// fix indentation, it might also be broken now
 class Page {
-  constructor(scheduleRefresh, enforceUrl) {
-    // Page "global" variables
-    this.haltRefresh = false;
-    // Load Style
-    this.importStyle(GUI_CSS);
+  constructor(pageOptions) {
+    if (typeof GM == "undefined") console.log(true);
+    this.TOKEN = pageOptions.TOKEN;
+    this.GUI_HTML = pageOptions.GUI_HTML;
+    this.GUI_CSS = pageOptions.GUI_CSS;
+    this.DEBUG_MODE = pageOptions.DEBUG_MODE;
     this.CONFIG = {
       DEBUG_CONSOLE: false,
-      COMMAND: '$m',
+      COMMAND: '$m', // This will 100% become a part of MudaeAutomation once that class exists
       SERVER_ID: '968552066165395496',
       CHANNEL_ID: '1009238449217347634'
     }
@@ -61,32 +61,46 @@ class Page {
       "diavolo",
       "shin seyoung"
     ]
-    this.localstorage = this.getLocalStorage();
-    console.log(this.localstorage)
 
+    this.haltRefresh = false;
+    this.localstorage = this.getLocalStorage();
+
+    if (this.GUI_CSS) {
+      this.importStyle(this.GUI_CSS);
+    }
     // This will be here while we do not have MudaeAUtoMessage, that will complicate things since we don't want to refresh while sending messages, and at the same time if it's off, it should refresh after some time.
-    if (scheduleRefresh) {
+    if (!this.DEBUG_MODE) {
       setInterval(this.attemptRefresh, 1800);
     }
 
     // Ensuring we are at the correct URL
-    if (enforceUrl) {
-      const titleObserve = new MutationObserver(this.correctCurrentUrl);
+    if (!this.DEBUG_MODE) {
+      const titleObserve = new MutationObserver(this.correctCurrentUrl.bind(this));
       titleObserve.observe(document.querySelector("head title"), {childList: true})
       this.correctCurrentUrl();
     }
   }
-  
+
   getLocalStorage() {
-    if (DEBUG_MODE) {
-      return localstorage;
+    if (this.DEBUG_MODE) {
+      return localStorage;
     }
-    
+
+    const storageCopy = {};
     const ifr = document.createElement("iframe");
     document.head.append(ifr);
-    const lstorage = Object.getOwnPropertyDescriptor(ifr.contentWindow, "localstorage");
+    const lstorageDescriptor = Object.getOwnPropertyDescriptor(ifr.contentWindow, "localStorage");
+    const localStorage = lstorageDescriptor.get.call(ifr.contentwindow);
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      const value = localStorage.getItem(key);
+      storageCopy[key] = value;
+    }
+
     ifr.remove();
-    return lstorage;
+
+    return storageCopy;
   }
 
   waitForElement(selector, timeout=10000) {
@@ -129,11 +143,11 @@ class Page {
     const urlPathSegments = window.location.pathname.split('/');
 
     if ( urlPathSegments[1] !== "channels"
-    || urlPathSegments[2] !== page.CONFIG.SERVER_ID
-    || urlPathSegments[3] !== page.CONFIG.CHANNEL_ID)
+    || urlPathSegments[2] !== this.CONFIG.SERVER_ID
+    || urlPathSegments[3] !== this.CONFIG.CHANNEL_ID)
     {
       window.location.href =
-      `https://discord.com/channels/${page.CONFIG.SERVER_ID}/${page.CONFIG.CHANNEL_ID}`;
+      `https://discord.com/channels/${this.CONFIG.SERVER_ID}/${this.CONFIG.CHANNEL_ID}`;
     }
   }
 
@@ -218,7 +232,7 @@ class MudaeGUI {
     // Basic Loading
     this.guiElement = document.createElement("div");
     this.guiElement.className = "mudae-gui";
-    this.guiElement.innerHTML = GUI_HTML;
+    this.guiElement.innerHTML = page.GUI_HTML;
     document.body.appendChild(this.guiElement);
 
     this.setupGUI();
@@ -268,7 +282,7 @@ class MudaeGUI {
     this.mudaelogs.createLog("Console Logic V1.1 Loaded");
 
     // Debug Mode
-    if (DEBUG_MODE) {
+    if (page.DEBUG_MODE) {
       window.guiclass = this;
       console.customLog = this.mudaelogs.createLog.bind(this.mudaelogs); // Evaluate if you need this bind statemnt
     }
@@ -418,9 +432,8 @@ class MudaeWhitelist {
   }
 }
 
-//! Indentation error inside this
 class MudaeAutoMessage {
-  static async startMessageInterval(message) {
+  async startMessageInterval(message) {
     const forbiddenHourMin = 4;
     const forbiddenHourMax = 12;
     let now;
@@ -438,37 +451,37 @@ class MudaeAutoMessage {
       now.setMinutes(now.getMinutes() + finalDelay);
 
       mudaelogs.createDebugLog(`Waiting ${finalDelay} minutes until we'll send messages`);
-      mudaelogs.createLog(`Messages will be sent at ${now.getHours().toString()
-      .padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`)
+      mudaelogs.createLog(`Messages will be sent at ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
 
       await new Promise(resolve => setTimeout(resolve, finalDelay * 60 * 1000));
 
       nowUTCHours = now.getUTCHours();
       if (nowUTCHours >= forbiddenHourMin && nowUTCHours <= forbiddenHourMax) {
-          mudaelogs.createDebugLog("We couldn't run the code: it is too late at night")
-          continue;
+        mudaelogs.createDebugLog("We couldn't run the code: it is too late at night")
+        continue;
       }
 
-      //! TODO: THE INDENT ISSUE IS HERE
       mudaelogs.createDebugLog("Message wait finished, sending messages");
       for (let i = 0; i < 8; i++) {
-        await new Promise(
-          resolve => setTimeout(
-            () => {
-            Discord.sendMessage(message);
-            resolve();
-            }, randomWithinRange(1000, 2000)
-          )
-        );
+        await sendMessageWithDelay();
       }
       page.attemptRefresh();
     }
+  }
+
+  async sendMessageWithDelay(message) {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        Discord.sendMessage(message);
+        resolve();
+      }, randomWithinRange(1000, 2000));
+    })
   }
 }
 // Holy shit this worked first try how tf-
 class MudaeAutoClaim {
   constructor(parentgui) {
-    if (DEBUG_MODE) {
+    if (page.DEBUG_MODE) {
       return;
     }
 
@@ -476,6 +489,7 @@ class MudaeAutoClaim {
     this.mudaelogs = parentgui.mudaelogs;
     this.startListener();
   }
+
   async startListener() {
     const messageObserver = new MutationObserver(this.messageListener.bind(this));
 
@@ -488,6 +502,7 @@ class MudaeAutoClaim {
       'childList': true
     });
   }
+
   messageListener(mutations) {
     for (const mutationRecord of mutations) {
       for (const node of mutationRecord.addedNodes) {
@@ -500,6 +515,7 @@ class MudaeAutoClaim {
       }
     }
   }
+
   verifyNode(msgElement) {
     if (msgElement?.nodeName !== 'LI') {
       return;
@@ -535,6 +551,7 @@ class MudaeAutoClaim {
 
     this.mudaelogs.createLog(`${haremName} is NOT in your whitelist`);
   }
+
   isMudaeClaimable(msgElement) {
     /* In order to validate the message you must do the following:
     * Assert the message contains an article element
@@ -570,6 +587,7 @@ class MudaeAutoClaim {
     // this.mudaelogs.createDebugLog(`Validating Message ${msgId}`);
     return true;
   }
+
   claimHarem(msgElement) {
     const buttons = msgElement.querySelector('button')?.parentNode?.children;
     const messageId = Discord.getMessageId(msgElement);
@@ -593,6 +611,7 @@ class MudaeAutoClaim {
     }
     this.mudaelogs.createDebugLog(`Finished claiming ${messageId} (${haremName})`);
   }
+
   getHaremName(msgElement) {
     return msgElement?.querySelector("[class|='embedAuthorName']")?.innerText;
   }
@@ -622,26 +641,22 @@ function isValidEnviroment() {
   return true;
 }
 
-//! INDENTATION ERROR HERE
 function getDiscordToken() {
   try {
-    webpackChunkdiscord_app.push(
-      [
-        [''],
-        {},
-        e => {
-          m=[];
-          for(let c in e.c)
-          m.push(e.c[c])
-        }
-      ]
-      );
+    webpackChunkdiscord_app.push([
+      [''],
+      {},
+      e => {
+        m=[];
+        for(let c in e.c) m.push(e.c[c])
+      }
+    ]);
   }
   catch (e) {
     return "";
   }
   return m.find(m => m?.exports?.default?.getToken !== void 0)
-    .exports.default.getToken();
+  .exports.default.getToken();
 }
 
 function randomWithinRange(min, max) {
@@ -664,39 +679,38 @@ async function fetchUrl(url) {
   }
 }
 
-const DEBUG_MODE = window.location.hostname !== "discord.com";
-const BRANCH = "main";
-const HTML_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/gui.html`;
-const CSS_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/gui-style.css`;
-
-let GUI_HTML;
-let GUI_CSS;
-let TOKEN;
 let page, mudaegui, mudaelogs;
 (async function() {
   'use strict';
-
-  // Move this to the future Page class
-  // TODO: Config & whitelist will be within the Page class
-  // move classes outside of function
-
-  // TODO: Change this code into a constructor for pagehandler
-  // TODO: Rename PageHandler to Page; make it where it is stored localstorage, settings, etc. Then it'll make sense to create a new Page()
-  // PageHandler.handle();
-
 
   if (!isValidEnviroment()) {
     return;
   }
 
-  if (typeof Notification != "undefined")
-    Notification.requestPermission();
+  let GUI_HTML;
+  let GUI_CSS;
+  const BRANCH = "main";
+  const DEBUG_MODE = window.location.hostname !== "discord.com";
+  const TOKEN = DEBUG_MODE ? "" : getDiscordToken();
+  const HTML_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/gui.html`;
+  const CSS_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/gui-style.css`;
+
+  // We cannot run discord if we're not on the main branch
+  if (BRANCH != "main" && !DEBUG_MODE) {
+    debugger;
+    return;
+  }
+
   const marker = document.createElement("div");
   marker.classList.add("mudae-gui-marker");
   document.head.appendChild(marker);
 
-  TOKEN = DEBUG_MODE ? "" : getDiscordToken();
+  // Ask for notifications since MudaeAutoClaim would like it.
+  if (typeof Notification != "undefined") {
+    Notification.requestPermission();
+  }
 
+  // GUI_HTML could be read either from GreaseMonkey or from a normal fetch
   if (typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined') {
     GUI_CSS = GM.getResourceText("guicss");
     GUI_HTML = GM.getResourceText("guihtml");
@@ -709,7 +723,12 @@ let page, mudaegui, mudaelogs;
     throw new Error("Unable to get GUI resources");
   }
 
-  page = new Page(!DEBUG_MODE, !DEBUG_MODE);
+  page = new Page({
+    TOKEN: TOKEN,
+    GUI_HTML: GUI_HTML,
+    GUI_CSS: GUI_CSS,
+    DEBUG_MODE: DEBUG_MODE
+  });
   mudaegui = new MudaeGUI();
   mudaelogs = mudaegui.mudaelogs;
   // const mudaeautomessage = new MudaeAutoMessage();
@@ -717,7 +736,7 @@ let page, mudaegui, mudaelogs;
   // ! TODO: The next step is to make the PageHandler class just "Page". Check the other TODOs to view what you have to do.
   // ! TODO: After that, you should get the GUI to remember the options you chose
   // ! TODO: After that, start working on MudaeAutoRoll
-  // TODO: See if you can make this modular using @require from a github page.
+  // TODO: See if you can make this modular using @require from a github page. Not really, you require on public variables a lot
   // TODO: Maybe save every event listener to a list, and once Close is pressed disconnect them.
   // TODO: Look for the response message of mudae before sending another $m scratch that maybe, at leastcheck if mudae is sending the "dude you have no rolls left". With that, the message listener should be readly available to every class through the Discord class. (Right now only MudaeAutoClaim has it)
   // TODO: Store the configs in Local Storage so that we don't lose it, that will be the defining factor as to how we'll link the GUI control panel to the rest of the code.
@@ -733,29 +752,29 @@ let page, mudaegui, mudaelogs;
 // TODO: Fix Indentation
 
 //? GUI Elements:
-      //* Automation
-      // h3 Claims
-      //? Claim using Character Whitelist (checkbox);
-      //? Claim using Series Whitelist (checkbox);
-      //? Claim using minimum Kakera (checkbox);
-      //? Claim Whishlisted (by anyone) (checkbox);
-      // h3 Rolls
-      //? AutoRoll(checkbox)
-      //? RollCommand (text)
-      //? RollCommandCount (default: 8)
-      //? Roll Will be sent at: (readonly span);
-      //* Whitelist
-      //? Whitelisted Characters(textbox with values saved to localStorage)
-      //? Whitelisted Series(textbox with values saved to localStorage)
-      //? Minimum Kakera (number)
-      //* Utilities
-      // h3 Rolls
-      //? Roll (button)
-      //? Recharge Rolls (button, sends $daily $rolls $dk);
-      // h3 Page
-      //? Enforce URL (checkbox)
-      //? Page will be refreshed at: (readonly span);
-      //* Claimables
-      //? [A list of available harems to claim in the moment]
-      //* Logs
-      //? Console (UL)
+//* Automation
+// h3 Claims
+//? Claim using Character Whitelist (checkbox);
+//? Claim using Series Whitelist (checkbox);
+//? Claim using minimum Kakera (checkbox);
+//? Claim Whishlisted (by anyone) (checkbox);
+// h3 Rolls
+//? AutoRoll(checkbox)
+//? RollCommand (text)
+//? RollCommandCount (default: 8)
+//? Roll Will be sent at: (readonly span);
+//* Whitelist
+//? Whitelisted Characters(textbox with values saved to localStorage)
+//? Whitelisted Series(textbox with values saved to localStorage)
+//? Minimum Kakera (number)
+//* Utilities
+// h3 Rolls
+//? Roll (button)
+//? Recharge Rolls (button, sends $daily $rolls $dk);
+// h3 Page
+//? Enforce URL (checkbox)
+//? Page will be refreshed at: (readonly span);
+//* Claimables
+//? [A list of available harems to claim in the moment]
+//* Logs
+//? Console (UL)
