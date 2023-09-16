@@ -735,8 +735,7 @@ let page, mudaegui, mudaelogs;
   // const mudaeautomessage = new MudaeAutoMessage();
 
   mudaelogs.createDebugLog("Debug logs enabled");
-  // ! TODO: The next step is to make the PageHandler class just "Page". Check the other TODOs to view what you have to do.
-  // ! TODO: After that, you should get the GUI to remember the options you chose
+  // ! TODO: After that, you should get the GUI to remember the options you chose (method getLocalStorage, setLocalStorage(key, value))
   // ! TODO: After that, start working on MudaeAutoRoll
   // TODO: See if you can make this modular using @require from a github page. Not really, you require on public variables a lot
   // TODO: Maybe save every event listener to a list, and once Close is pressed disconnect them.
