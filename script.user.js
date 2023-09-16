@@ -63,7 +63,6 @@ class Page {
     ]
 
     this.haltRefresh = false;
-    this.localstorage = this.getLocalStorage();
 
     if (this.GUI_CSS) {
       this.importStyle(this.GUI_CSS);
@@ -81,26 +80,28 @@ class Page {
     }
   }
 
-  getLocalStorage() {
-    if (this.DEBUG_MODE) {
-      return localStorage;
-    }
+  setStorageItem(key, value) {
+    const iframe = document.createElement("iframe");
+    document.head.append(iframe);
 
-    const storageCopy = {};
+    const lsdescriptor = Object.getOwnPropertyDescriptor(iframe.contentWindow, "localStorage");
+    const LS = lsdescriptor.get.call(iframe.contentWindow);
+    let result = LS.setItem(key, value);
+    iframe.remove();
+
+    return result;
+  }
+
+  getStorageItem(key) {
     const ifr = document.createElement("iframe");
     document.head.append(ifr);
+
     const lstorageDescriptor = Object.getOwnPropertyDescriptor(ifr.contentWindow, "localStorage");
-    const localStorage = lstorageDescriptor.get.call(ifr.contentwindow);
-
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      const value = localStorage.getItem(key);
-      storageCopy[key] = value;
-    }
-
+    const LS = lstorageDescriptor.get.call(ifr.contentwindow);
+    let item = LS.getItem(key);
     ifr.remove();
 
-    return storageCopy;
+    return item;
   }
 
   waitForElement(selector, timeout=10000) {
@@ -732,6 +733,7 @@ let page, mudaegui, mudaelogs;
   mudaegui = new MudaeGUI();
   mudaelogs = mudaegui.mudaelogs;
   // const mudaeautomessage = new MudaeAutoMessage();
+
   mudaelogs.createDebugLog("Debug logs enabled");
   // ! TODO: The next step is to make the PageHandler class just "Page". Check the other TODOs to view what you have to do.
   // ! TODO: After that, you should get the GUI to remember the options you chose
@@ -739,6 +741,7 @@ let page, mudaegui, mudaelogs;
   // TODO: See if you can make this modular using @require from a github page. Not really, you require on public variables a lot
   // TODO: Maybe save every event listener to a list, and once Close is pressed disconnect them.
   // TODO: Look for the response message of mudae before sending another $m scratch that maybe, at leastcheck if mudae is sending the "dude you have no rolls left". With that, the message listener should be readly available to every class through the Discord class. (Right now only MudaeAutoClaim has it)
+  // TODO: Remove OPTIONROW system, we already have flex
   // TODO: Store the configs in Local Storage so that we don't lose it, that will be the defining factor as to how we'll link the GUI control panel to the rest of the code.
   // TODO: I just had the best idea, instead of struggling to react to a message we could make the GUI have a category called "previous harem" which will list the last 10 harem that were sent, we will display the Name of the harem, the kakera count and the image (scaled obviously). It will be in the format of a card and if you click on the image you react to the message (msgId is stored obviously). DO NOT forget to consider the option of making the card available for 45 seconds before deleting it, instead of using the 10 harem limit.
   // TODO: If you really cannot improve the current GUI format, then copy Orion Library's model

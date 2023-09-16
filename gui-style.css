@@ -206,3 +206,7 @@
 #mudae-console-logs {
     list-style: none;
 }
+
+#mudae-console-logs li {
+    white-space: pre-wrap;
+}
