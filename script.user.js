@@ -169,6 +169,8 @@ class Page {
 }
 
 class Discord {
+  static event = new Event(""); // ! WORK FROM HERE
+  static msgContainer;
   static getMessageId(msgElement) {
     return msgElement?.id?.split("-")[3];
   }
@@ -215,6 +217,33 @@ class Discord {
     .then(response => {
       mudaelogs.addConsoleLog(`[DISCORD] Message reaction sent with response status '${response.status}'`, "blue")
     })
+  }
+
+  async startListener() {
+    const messageObserver = new MutationObserver(function(mutations) {
+      for (const mutationRecord of mutations) {
+        for (const node of mutationRecord.addedNodes) {
+          // I assume addedNodes will return null sometimes. But I need to actually test that
+          if (!node) {
+            debugger;
+            return;
+          };
+
+          if (node.nodeName == "LI" && Discord.getMessageId(node)) {
+            Discord.msgContainer.
+          }
+        }
+      }
+    }.bind(this));
+
+    Discord.msgContainer = await page.waitForElement("[class|='scrollerInner']", 30000).catch(() => {
+      debugger;
+      window.location.reload();
+    });
+
+    messageObserver.observe(Discord.msgContainer, {
+      'childList': true
+    });
   }
 }
 
@@ -488,20 +517,9 @@ class MudaeAutoClaim {
 
     this.parentgui = parentgui;
     this.mudaelogs = parentgui.mudaelogs;
-    this.startListener();
-  }
 
-  async startListener() {
-    const messageObserver = new MutationObserver(this.messageListener.bind(this));
-
-    const msgNode = await page.waitForElement("[class|='scrollerInner']", 30000).catch(() => {
-      debugger;
-      window.location.reload();
-    });
-
-    messageObserver.observe(msgNode, {
-      'childList': true
-    });
+    Discord.msgContainer.addEventListener("newDiscordMessage", this.messageListener.bind(this));
+    // this.startListener();
   }
 
   messageListener(mutations) {
@@ -682,6 +700,7 @@ async function fetchUrl(url) {
 
 let page, mudaegui, mudaelogs;
 (async function() {
+  throw new Error("Code is broken; but computer charger broke")
   'use strict';
 
   if (!isValidEnviroment()) {
