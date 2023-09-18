@@ -318,7 +318,7 @@ class MudaeGUI {
     for (const button of categoryList.children) {
       button.addEventListener("click", () => {
         const categorySelector = button.id.replace("button", "category");
-        const category = this.guiElement.querySelector(categorySelector);
+        const category = this.guiElement.querySelector("#" + categorySelector);
         this.changeCategory(button, category);
       });
     }
@@ -436,8 +436,8 @@ class MudaeLogs {
       return;
     }
 
-    const consoleLogs = this.guiElement?.querySelector("#mudae-console-logs");
-    const consoleOption = consoleLogs.parentNode.parentNode
+    const consoleLogs = this.guiElement.querySelector("#mudae-console");
+    const consoleContainer = consoleLogs.parentNode
     const consoleLimit = 150;
 
     if (!consoleLogs) {
@@ -457,7 +457,7 @@ class MudaeLogs {
     }
     consoleLogs.appendChild(logElement);
 
-    consoleOption.scrollTo(0, consoleOption.scrollHeight)
+    consoleContainer.scrollTo(0, consoleContainer.scrollHeight)
   }
 
   createLog(msg) {
@@ -723,7 +723,7 @@ let page, mudaegui, mudaelogs;
 
   let GUI_HTML;
   let GUI_CSS;
-  const BRANCH = "main";
+  const BRANCH = "changing-gui-buttons"; // TODO!: CHANGE BACK
   const DEBUG_MODE = window.location.hostname !== "discord.com";
   const TOKEN = DEBUG_MODE ? "" : getDiscordToken();
   const HTML_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/gui.html`;
