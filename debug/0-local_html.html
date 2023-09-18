@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Local HTML</title>
     <link rel="stylesheet" href="../gui-style.css">
 </head>
 <body>
     <div class="mudae-gui"></div>
     <script>
         const gui = document.querySelector(".mudae-gui");
-        const url = "https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/main/gui.html";
+        const url = new URL("../gui.html", window.location.href).href;
         fetch(url)
         .then((response) => {
             if (response.ok) {

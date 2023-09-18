@@ -2,8 +2,7 @@
     <div class="mudae-sidebar-content">
         <span class="mudae-sidebar-header">MUDAE GUI</span>
         <div class="mudae-gui-categories">
-            <button class="mudae-button-category" id="mudae-button-auto-claim">Auto Claim</button>
-            <button class="mudae-button-category" id="mudae-button-auto-command">Auto Command</button>
+            <button class="mudae-button-category" id="mudae-button-automation">Automation</button>
             <button class="mudae-button-category" id="mudae-button-whitelist">Whitelist</button>
             <button class="mudae-button-category" id="mudae-button-utilities">Utilities</button>
             <button class="mudae-button-category mudae-selected-button" id="mudae-button-logs">Logs</button>
@@ -11,12 +10,8 @@
     </div>
 </section>
 <section class="mudae-categories">
-    <div class="mudae-category" id="mudae-category-auto-claim">
-        <span class="mudae-category-header">Auto Claim</span>
-        <ul class="mudae-options"></ul>
-    </div>
-    <div class="mudae-category" id="mudae-category-auto-command">
-        <span class="mudae-category-header">Auto Command</span>
+    <div class="mudae-category" id="mudae-category-automation">
+        <span class="mudae-category-header">Automation</span>
         <ul class="mudae-options"></ul>
     </div>
     <div class="mudae-category" id="mudae-category-whitelist">
@@ -31,13 +26,11 @@
     </div>
     <div class="mudae-category mudae-current-category" id="mudae-category-logs">
         <span class="mudae-category-header">Logs</span>
-        <ul class="mudae-options">
-            <li class="mudae-option-row" id="mudae-console">
-                <ul id="mudae-console-logs">
-                    <li>~ [MUDAE] Console Element Loaded</li>
-                </ul>
-            </li>
-        </ul>
+        <div class="mudae-category-container">
+            <ul id="mudae-console">
+                <li>~ [MUDAE] Console Element Loaded</li>
+            </ul>
+        </div>
     </div>
 </section>
 <div class="mudae-gui-controls">
