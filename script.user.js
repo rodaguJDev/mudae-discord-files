@@ -289,13 +289,13 @@ class MudaeGUI {
     const minimizeButton = this.guiElement.querySelector(".mudae-minimize-button");
     const categoryList = this.guiElement.querySelector(".mudae-gui-categories");
     const guiElement = this.guiElement;
-    const categoryDict = {
+    /* const categoryDict = {
       "mudae-button-auto-claim": "#mudae-category-auto-claim",
       "mudae-button-auto-command": "#mudae-category-auto-command",
       "mudae-button-whitelist": "#mudae-category-whitelist",
       "mudae-button-utilities": "#mudae-category-utilities",
       "mudae-button-logs": "#mudae-category-logs",
-    }
+    } */
 
     // Drag Logic
     guiElement.addEventListener("mousedown", this.startGUIDrag.bind(this));
@@ -317,7 +317,9 @@ class MudaeGUI {
     // Category Logic
     for (const button of categoryList.children) {
       button.addEventListener("click", () => {
-        this.changeCategory(button, categoryDict[button.id]);
+        const categorySelector = button.id.replace("button", "category");
+        const category = this.guiElement.querySelector(categorySelector);
+        this.changeCategory(button, category);
       });
     }
 
@@ -338,10 +340,9 @@ class MudaeGUI {
     return;
   }
 
-  changeCategory(button, newCategorySelector) {
+  changeCategory(button, newCategory) {
     const currentCategoryButton = this.guiElement.querySelector(".mudae-selected-button");
     const currentCategory = document.querySelector(".mudae-current-category");
-    const newCategory = this.guiElement.querySelector(newCategorySelector);
 
     currentCategory?.classList.remove("mudae-current-category");
     currentCategoryButton?.classList.remove("mudae-selected-button");
@@ -758,7 +759,7 @@ let page, mudaegui, mudaelogs;
   // const mudaeautomessage = new MudaeAutoMessage();
 
   mudaelogs.createDebugLog("Debug logs enabled");
-  // ! TODO: After that, you should get the GUI to remember the options you chose (method getLocalStorage, setLocalStorage(key, value))
+  // ! TODO: Fix the GUI
   // ! TODO: After that, start working on MudaeAutoRoll
   // TODO: See if you can make this modular using @require from a github page. Not really, you require on public variables a lot
   // TODO: Maybe save every event listener to a list, and once Close is pressed disconnect them.
