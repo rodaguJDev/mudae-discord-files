@@ -365,7 +365,7 @@ class MudaeGUI {
   startGUIDrag(event) {
     // Prevent the dragging from happening if we're on the Content (In the future when we do the GUI revamp, we'll limit the header to the draggable area)
     // the .closest function is basically a "FindParentElement"
-    if (event.target?.closest(".mudae-options")) {
+    if (event.target?.closest(".mudae-category-container")) {
       return;
     }
 
@@ -760,6 +760,7 @@ let page, mudaegui, mudaelogs;
 
   mudaelogs.createDebugLog("Debug logs enabled");
   // ! TODO: Fix the GUI
+  // ! TODO: Make the userscript fetch the code from github using @require, that way we do not have to sync like that. That does make it so any push will directly affect discord, for that, create a branch called "indev" that will take those merges, and after all is done, just merge "indev" to "main"
   // ! TODO: After that, start working on MudaeAutoRoll
   // TODO: See if you can make this modular using @require from a github page. Not really, you require on public variables a lot
   // TODO: Maybe save every event listener to a list, and once Close is pressed disconnect them.
