@@ -262,6 +262,25 @@ class Discord {
   }
 }
 
+class MudaeGUIConfig {
+  constructor() {
+    // Load current state, set new if none is found
+    this.storageKey = "mudaeConfig";
+    this.configuration = this.getLocalConfig();
+  }
+  
+  getLocalConfig() {
+    let lsconfig = page.getStorageItem("mudaeConfig");
+    
+    if (lsconfig) {
+      return lsconfig;
+    }
+    
+    lsconfig = [];
+    page.setStorageItem
+  }
+}
+
 class MudaeGUI {
   constructor() {
     // this.guiDragging = false;
