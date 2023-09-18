@@ -800,7 +800,7 @@ let page, mudaegui, mudaelogs;
 // h3 Page
 //? Enforce URL (checkbox)
 //? Page will be refreshed at: (readonly span);
-//* Claimables
+//* Claimable
 //? [A list of available harems to claim in the moment]
 //* Logs
 //? Console (UL)
