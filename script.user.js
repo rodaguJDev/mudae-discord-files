@@ -13,8 +13,27 @@
 // ==/UserScript==
 
 class Page {
+  static waitForElement(selector, timeout=10000) {
+    return new Promise((resolve, reject) => {
+      const observer = new MutationObserver((mutationsList, observer) => {
+        const element = document.querySelector(selector);
+        if (element) {
+          observer.disconnect();
+          resolve(element);
+        }
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      setTimeout(() => {
+        observer.disconnect();
+        reject(new Error(`Element with selector '${selector}' not found within ${timeout} ms.`));
+      }, timeout);
+    });
+  }
+
   constructor(pageOptions) {
-    if (typeof GM == "undefined") console.log(true);
+    this.haltRefresh = false;
     this.TOKEN = pageOptions.TOKEN;
     this.GUI_HTML = pageOptions.GUI_HTML;
     this.GUI_CSS = pageOptions.GUI_CSS;
@@ -62,22 +81,34 @@ class Page {
       "shin seyoung"
     ]
 
-    this.haltRefresh = false;
-
     if (this.GUI_CSS) {
       this.importStyle(this.GUI_CSS);
     }
-    // This will be here while we do not have MudaeAUtoMessage, that will complicate things since we don't want to refresh while sending messages, and at the same time if it's off, it should refresh after some time.
-    if (!this.DEBUG_MODE) {
-      setInterval(this.attemptRefresh, 1800);
+    else {
+      throw new Error("No CSS found");
     }
 
-    // Ensuring we are at the correct URL
     if (!this.DEBUG_MODE) {
+      // This will be here while we do not have MudaeAUtoMessage, that will complicate things since we don't want to refresh while sending messages, and at the same time if it's off, it should refresh after some time.
+      setInterval(this.attemptRefresh, 1800);
+
+      // Ensuring we are at the correct URL
       const titleObserve = new MutationObserver(this.correctCurrentUrl.bind(this));
       titleObserve.observe(document.querySelector("head title"), {childList: true})
       this.correctCurrentUrl();
+
+      // Start the message listener
+      Discord.setupMessageListener();
     }
+
+    // Ask for notifications since MudaeAutoClaim uses them.
+    if (typeof Notification != "undefined") {
+      Notification.requestPermission();
+    }
+
+    const marker = document.createElement("div");
+    marker.classList.add("mudae-gui-marker");
+    document.head.appendChild(marker);
   }
 
   setStorageItem(key, value) {
@@ -102,25 +133,6 @@ class Page {
     ifr.remove();
 
     return item;
-  }
-
-  waitForElement(selector, timeout=10000) {
-    return new Promise((resolve, reject) => {
-      const observer = new MutationObserver((mutationsList, observer) => {
-        const element = document.querySelector(selector);
-        if (element) {
-          observer.disconnect();
-          resolve(element);
-        }
-      });
-
-      observer.observe(document.body, { childList: true, subtree: true });
-
-      setTimeout(() => {
-        observer.disconnect();
-        reject(new Error(`Element with selector '${selector}' not found within ${timeout} ms.`));
-      }, timeout);
-    });
   }
 
   attemptRefresh() {
@@ -169,8 +181,7 @@ class Page {
 }
 
 class Discord {
-  static event = new Event(""); // ! WORK FROM HERE
-  static msgContainer;
+  static messageListeners = [];
   static getMessageId(msgElement) {
     return msgElement?.id?.split("-")[3];
   }
@@ -219,7 +230,11 @@ class Discord {
     })
   }
 
-  async startListener() {
+  static onNewMessage(method) {
+    this.messageListeners.push(method);
+  }
+
+  static async setupMessageListener() {
     const messageObserver = new MutationObserver(function(mutations) {
       for (const mutationRecord of mutations) {
         for (const node of mutationRecord.addedNodes) {
@@ -230,18 +245,18 @@ class Discord {
           };
 
           if (node.nodeName == "LI" && Discord.getMessageId(node)) {
-            Discord.msgContainer.
+            this.messageListeners.forEach(listener => listener(node));
           }
         }
       }
     }.bind(this));
 
-    Discord.msgContainer = await page.waitForElement("[class|='scrollerInner']", 30000).catch(() => {
+    const msgContainer = await Page.waitForElement("[class|='scrollerInner']", 30000).catch(() => {
       debugger;
       window.location.reload();
     });
 
-    messageObserver.observe(Discord.msgContainer, {
+    messageObserver.observe(msgContainer, {
       'childList': true
     });
   }
@@ -493,7 +508,7 @@ class MudaeAutoMessage {
 
       mudaelogs.createDebugLog("Message wait finished, sending messages");
       for (let i = 0; i < 8; i++) {
-        await sendMessageWithDelay();
+        await this.sendMessageWithDelay();
       }
       page.attemptRefresh();
     }
@@ -518,10 +533,9 @@ class MudaeAutoClaim {
     this.parentgui = parentgui;
     this.mudaelogs = parentgui.mudaelogs;
 
-    Discord.msgContainer.addEventListener("newDiscordMessage", this.messageListener.bind(this));
-    // this.startListener();
+    Discord.onNewMessage(this.verifyNode.bind(this));
   }
-
+/*
   messageListener(mutations) {
     for (const mutationRecord of mutations) {
       for (const node of mutationRecord.addedNodes) {
@@ -534,7 +548,7 @@ class MudaeAutoClaim {
       }
     }
   }
-
+ */
   verifyNode(msgElement) {
     if (msgElement?.nodeName !== 'LI') {
       return;
@@ -700,7 +714,6 @@ async function fetchUrl(url) {
 
 let page, mudaegui, mudaelogs;
 (async function() {
-  throw new Error("Code is broken; but computer charger broke")
   'use strict';
 
   if (!isValidEnviroment()) {
@@ -721,16 +734,7 @@ let page, mudaegui, mudaelogs;
     return;
   }
 
-  const marker = document.createElement("div");
-  marker.classList.add("mudae-gui-marker");
-  document.head.appendChild(marker);
-
-  // Ask for notifications since MudaeAutoClaim would like it.
-  if (typeof Notification != "undefined") {
-    Notification.requestPermission();
-  }
-
-  // GUI_HTML could be read either from GreaseMonkey or from a normal fetch
+  // GUI_HTML can be read either from GreaseMonkey or from a normal fetch
   if (typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined') {
     GUI_CSS = GM.getResourceText("guicss");
     GUI_HTML = GM.getResourceText("guihtml");
