@@ -266,18 +266,27 @@ class MudaeGUIConfig {
   constructor() {
     // Load current state, set new if none is found
     this.storageKey = "mudaeConfig";
-    this.configuration = this.getLocalConfig();
+    this.config = this.getLocalConfig();
   }
-  
+
   getLocalConfig() {
     let lsconfig = page.getStorageItem("mudaeConfig");
-    
+
     if (lsconfig) {
       return lsconfig;
     }
-    
+
     lsconfig = [];
-    page.setStorageItem
+    page.setStorageItem(this.storageKey, lsconfig);
+  }
+
+  updateLocalConfig(configID, configValue) {
+    // TODO:
+    //update and save
+  }
+
+  applyCurrentConfigs() {
+    // TODO: Will look at the current config and set the values of the options accordingly
   }
 }
 
@@ -292,6 +301,7 @@ class MudaeGUI {
     TODO: Implement a whitelist system using localstorage instead of a hard coded one
     TODO: Make each function work
     */
+    this.guioptions = new MudaeGUIConfig();
 
     // Basic Loading
     this.guiElement = document.createElement("div");
@@ -352,11 +362,6 @@ class MudaeGUI {
       window.guiclass = this;
       console.customLog = this.mudaelogs.createLog.bind(this.mudaelogs); // Evaluate if you need this bind statemnt
     }
-  }
-
-  configLogic() {
-    // Logic that verifies the checkmarks and runs the functions acording to them
-    return;
   }
 
   changeCategory(button, newCategory) {
@@ -670,14 +675,21 @@ class MudaeAutoClaim {
   }
 }
 
-function isValidEnviroment() {
+function isValidEnviroment(branch) {
   const ALREADY_RAN = document.head.querySelector(".mudae-gui-marker");
   const ON_DISCORD = window.location.hostname === "discord.com";
   const VIOLENTMONKEY = typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined';
   const VENCORD_EXISTS = typeof Vencord === "undefined";
+  const DEBUG_MODE = window.location.hostname !== "discord.com";
 
   if (ALREADY_RAN) {
     return false;
+  }
+
+  // We cannot run discord if we're not on the main branch
+  if (branch != "main" && !DEBUG_MODE) {
+    debugger;
+    return;
   }
 
   if (ON_DISCORD) {
@@ -712,6 +724,28 @@ function getDiscordToken() {
   .exports.default.getToken();
 }
 
+async function getGUIAssets(branch, isDebugMode) {
+  const assets = {GUI_HTML: "", GUI_CSS: ""};
+  const isUserScript = typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined';
+
+  const HTML_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${branch}/gui.html`;
+  const CSS_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${branch}/gui-style.css`;
+
+  if (isUserScript) {
+    assets.GUI_CSS = GM.getResourceText("guicss");
+    assets.GUI_HTML = GM.getResourceText("guihtml");
+  }
+  else if (isDebugMode) {
+    assets.GUI_HTML = await fetchUrl(HTML_URL);
+    assets.GUI_CSS = await fetchUrl(CSS_URL);
+  }
+  else {
+    throw new Error("Unable to get GUI resources");
+  }
+
+  return assets;
+}
+
 function randomWithinRange(min, max) {
   return Math.floor(Math.random()*(max-min+1)) + min;
 }
@@ -727,6 +761,7 @@ async function fetchUrl(url) {
     return response.text();
   }
   catch {
+    throw Error("`Error fetching ${url}: ${error}`");
     console.error(`Error fetching ${url}: ${error}`);
     return '';
   }
@@ -736,36 +771,14 @@ let page, mudaegui, mudaelogs;
 (async function() {
   'use strict';
 
-  if (!isValidEnviroment()) {
+  const BRANCH = "changing-gui-buttons"; // ! TODO: CHANGE BACK
+  if (!isValidEnviroment(BRANCH)) {
     return;
   }
 
-  let GUI_HTML;
-  let GUI_CSS;
-  const BRANCH = "changing-gui-buttons"; // TODO!: CHANGE BACK
   const DEBUG_MODE = window.location.hostname !== "discord.com";
   const TOKEN = DEBUG_MODE ? "" : getDiscordToken();
-  const HTML_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/gui.html`;
-  const CSS_URL = `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/gui-style.css`;
-
-  // We cannot run discord if we're not on the main branch
-  if (BRANCH != "main" && !DEBUG_MODE) {
-    debugger;
-    return;
-  }
-
-  // GUI_HTML can be read either from GreaseMonkey or from a normal fetch
-  if (typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined') {
-    GUI_CSS = GM.getResourceText("guicss");
-    GUI_HTML = GM.getResourceText("guihtml");
-  }
-  else if (DEBUG_MODE) {
-    GUI_HTML = await fetchUrl(HTML_URL);
-    GUI_CSS = await fetchUrl(CSS_URL);
-  }
-  else {
-    throw new Error("Unable to get GUI resources");
-  }
+  const {GUI_HTML, GUI_CSS} = await getGUIAssets(BRANCH, DEBUG_MODE);
 
   page = new Page({
     TOKEN: TOKEN,
