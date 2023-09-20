@@ -550,12 +550,13 @@ class MudaeAutoMessage {
 // Holy shit this worked first try how tf-
 class MudaeAutoClaim {
   constructor(parentgui) {
-    if (page.DEBUG_MODE) {
-      return;
-    }
 
     this.parentgui = parentgui;
     this.mudaelogs = parentgui.mudaelogs;
+    this.page = parentgui.page;
+    if (this.page.DEBUG_MODE) {
+      return;
+    }
 
     Discord.onNewMessage(this.verifyNode.bind(this));
   }
@@ -601,7 +602,7 @@ class MudaeAutoClaim {
     };
 
 
-    if (page.WHITELIST.includes(haremName.toLowerCase())) {
+    if (this.page.WHITELIST.includes(haremName.toLowerCase())) {
       this.claimHarem(msgElement);
       return;
     }
