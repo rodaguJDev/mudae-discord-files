@@ -263,9 +263,11 @@ class Discord {
 }
 
 class MudaeGUIConfig {
-  constructor() {
+  constructor(mudaegui) {
     // Load current state, set new if none is found
     this.storageKey = "mudaeConfig";
+    this.mudaegui = mudaegui;
+    this.page = mudaegui.page;
     this.config = this.getLocalConfig();
   }
 
@@ -277,7 +279,7 @@ class MudaeGUIConfig {
     }
 
     lsconfig = [];
-    page.setStorageItem(this.storageKey, lsconfig);
+    this.page.setStorageItem(this.storageKey, lsconfig);
   }
 
   updateLocalConfig(configID, configValue) {
@@ -291,22 +293,17 @@ class MudaeGUIConfig {
 }
 
 class MudaeGUI {
-  constructor() {
-    // this.guiDragging = false;
-    // this.dragMaxXPos = 0;
-    // this.dragMaxYPos = 0;
-    // this.dragOffsetX = 0;
-    // this.dragOffsetY = 0;
+  constructor(page) {
     /*
     TODO: Implement a whitelist system using localstorage instead of a hard coded one
     TODO: Make each function work
     */
-    this.guioptions = new MudaeGUIConfig();
+    this.page = page;
 
     // Basic Loading
     this.guiElement = document.createElement("div");
     this.guiElement.className = "mudae-gui";
-    this.guiElement.innerHTML = page.GUI_HTML;
+    this.guiElement.innerHTML = this.page.GUI_HTML;
     document.body.appendChild(this.guiElement);
 
     this.setupGUI();
@@ -317,7 +314,6 @@ class MudaeGUI {
     const closeButton = this.guiElement.querySelector(".mudae-close-button");
     const minimizeButton = this.guiElement.querySelector(".mudae-minimize-button");
     const categoryList = this.guiElement.querySelector(".mudae-gui-categories");
-    const guiElement = this.guiElement;
     /* const categoryDict = {
       "mudae-button-auto-claim": "#mudae-category-auto-claim",
       "mudae-button-auto-command": "#mudae-category-auto-command",
@@ -327,8 +323,8 @@ class MudaeGUI {
     } */
 
     // Drag Logic
-    guiElement.addEventListener("mousedown", this.startGUIDrag.bind(this));
-    guiElement.addEventListener("touchstart", this.startGUIDrag.bind(this));
+    this.guiElement.addEventListener("mousedown", this.startGUIDrag.bind(this));
+    this.guiElement.addEventListener("touchstart", this.startGUIDrag.bind(this));
     window.addEventListener("mousemove", this.updateGUIDrag.bind(this));
     window.addEventListener("touchmove", this.updateGUIDrag.bind(this));
     window.addEventListener("mouseup", this.stopGUIDrag.bind(this));
@@ -344,6 +340,7 @@ class MudaeGUI {
     });
 
     // Category Logic
+    // TODO: Make it so the HTML only has the category display, and create the buttons dynamically. (lowewt priority)
     for (const button of categoryList.children) {
       button.addEventListener("click", () => {
         const categorySelector = button.id.replace("button", "category");
@@ -355,6 +352,7 @@ class MudaeGUI {
     // Create GUI Modules
     this.mudaelogs = new MudaeLogs(this);
     this.mudaeautoclaim = new MudaeAutoClaim(this);
+    this.guioptions = new MudaeGUIConfig(this);
     this.mudaelogs.createLog("Console Logic V1.1 Loaded");
 
     // Debug Mode
@@ -362,6 +360,7 @@ class MudaeGUI {
       window.guiclass = this;
       console.customLog = this.mudaelogs.createLog.bind(this.mudaelogs); // Evaluate if you need this bind statemnt
     }
+    
   }
 
   changeCategory(button, newCategory) {
@@ -676,6 +675,7 @@ class MudaeAutoClaim {
 }
 
 function isValidEnviroment(branch) {
+  console.error(typeof GM)
   const ALREADY_RAN = document.head.querySelector(".mudae-gui-marker");
   const ON_DISCORD = window.location.hostname === "discord.com";
   const VIOLENTMONKEY = typeof GM !== 'undefined' && typeof GM.getResourceText !== 'undefined';
@@ -767,6 +767,8 @@ async function fetchUrl(url) {
   }
 }
 
+// use passing arguments instead of this
+// also, validatePage is done once the Page constructor is called.
 let page, mudaegui, mudaelogs;
 (async function() {
   'use strict';
@@ -788,6 +790,23 @@ let page, mudaegui, mudaelogs;
   });
   mudaegui = new MudaeGUI();
   mudaelogs = mudaegui.mudaelogs;
+  
+  /*
+  I plan on making the code look like this:
+  the new page should determine token and debug_mode
+  mudaegui should only start the basics, without modules, just a blank slate
+  each module will have a method of linking with the gui. it must have a name attribute to be placed on the button, and some built-in html for its functions.
+  const page = new Page();
+  if (!page.isValid) {
+    throw Error("Invalid Page");
+  }
+  
+  const mudaegui = new MudaeGUI();
+  const mudaelogs = new MudaeLogs();
+  const mudaeclaims = new MudaeAutoClaim();
+  mudaegui.injectModules([mudaelogs, mudaeclaims]);
+  mudargui.render();
+  */
   // const mudaeautomessage = new MudaeAutoMessage();
 
   mudaelogs.createDebugLog("Debug logs enabled");
