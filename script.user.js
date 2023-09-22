@@ -262,36 +262,6 @@ class Discord {
   }
 }
 
-class MudaeGUIConfig {
-  constructor(mudaegui) {
-    // Load current state, set new if none is found
-    this.storageKey = "mudaeConfig";
-    this.mudaegui = mudaegui;
-    this.page = mudaegui.page;
-    this.config = this.getLocalConfig();
-  }
-
-  getLocalConfig() {
-    let lsconfig = page.getStorageItem("mudaeConfig");
-
-    if (lsconfig) {
-      return lsconfig;
-    }
-
-    lsconfig = [];
-    this.page.setStorageItem(this.storageKey, lsconfig);
-  }
-
-  updateLocalConfig(configID, configValue) {
-    // TODO:
-    //update and save
-  }
-
-  applyCurrentConfigs() {
-    // TODO: Will look at the current config and set the values of the options accordingly
-  }
-}
-
 class MudaeGUI {
   constructor(page) {
     /*
@@ -322,6 +292,7 @@ class MudaeGUI {
       "mudae-button-logs": "#mudae-category-logs",
     } */
 
+    // Both these logics become their own class
     // Drag Logic
     this.guiElement.addEventListener("mousedown", this.startGUIDrag.bind(this));
     this.guiElement.addEventListener("touchstart", this.startGUIDrag.bind(this));
@@ -341,6 +312,7 @@ class MudaeGUI {
 
     // Category Logic
     // TODO: Make it so the HTML only has the category display, and create the buttons dynamically. (lowewt priority)
+    // TODO: Actually, each module will create their own button on injection
     for (const button of categoryList.children) {
       button.addEventListener("click", () => {
         const categorySelector = button.id.replace("button", "category");
@@ -352,7 +324,7 @@ class MudaeGUI {
     // Create GUI Modules
     this.mudaelogs = new MudaeLogs(this);
     this.mudaeautoclaim = new MudaeAutoClaim(this);
-    this.guioptions = new MudaeGUIConfig(this);
+    this.guioptions = new MudaeConfig(this);
     this.mudaelogs.createLog("Console Logic V1.1 Loaded");
 
     // Debug Mode
@@ -446,6 +418,36 @@ class MudaeGUI {
   }
 }
 
+class MudaeConfig {
+  constructor(mudaegui) {
+    // Load current state, set new if none is found
+    this.storageKey = "mudaeConfig";
+    this.mudaegui = mudaegui;
+    this.page = mudaegui.page;
+    this.config = this.getLocalConfig();
+  }
+
+  getLocalConfig() {
+    let lsconfig = page.getStorageItem("mudaeConfig");
+
+    if (lsconfig) {
+      return lsconfig;
+    }
+
+    lsconfig = [];
+    this.page.setStorageItem(this.storageKey, lsconfig);
+  }
+
+  updateLocalConfig(configID, configValue) {
+    // TODO:
+    //update and save
+  }
+
+  applyCurrentConfigs() {
+    // TODO: Will look at the current config and set the values of the options accordingly
+  }
+}
+
 class MudaeLogs {
   constructor(parentgui) {
     this.parentgui = parentgui;
@@ -501,6 +503,7 @@ class MudaeWhitelist {
   }
 }
 
+// TODO: Create a class called MudaeAutomation that will be the one to be imported by MudaeGUI.
 class MudaeAutoMessage {
   async startMessageInterval(message) {
     const forbiddenHourMin = 4;
@@ -547,7 +550,7 @@ class MudaeAutoMessage {
     })
   }
 }
-// Holy shit this worked first try how tf-
+// TODO: Read the comment above MudaeAutoMessage
 class MudaeAutoClaim {
   constructor(parentgui) {
 
@@ -795,7 +798,7 @@ let page, mudaegui, mudaelogs;
   /*
   I plan on making the code look like this:
   the new page should determine token and debug_mode
-  mudaegui should only start the basics, without modules, just a blank slate
+  mudaegui should only start the basics, without modules, just a blank slate. It should also be the one to load and query the HTML and CSS, except if it goes to conflict with the @require statement later.
   each module will have a method of linking with the gui. it must have a name attribute to be placed on the button, and some built-in html for its functions.
   const page = new Page();
   if (!page.isValid) {
@@ -807,11 +810,12 @@ let page, mudaegui, mudaelogs;
   const mudaeclaims = new MudaeAutoClaim();
   mudaegui.injectModules([mudaelogs, mudaeclaims]);
   mudargui.render();
+  ? because setupGUI has too much of a burden
   */
   // const mudaeautomessage = new MudaeAutoMessage();
 
   mudaelogs.createDebugLog("Debug logs enabled");
-  // ! TODO: Fix the GUI
+  // ! TODO: Continue working on MudaeConfigs
   // ! TODO: Make the userscript fetch the code from github using @require, that way we do not have to sync like that. That does make it so any push will directly affect discord, for that, create a branch called "indev" that will take those merges, and after all is done, just merge "indev" to "main"
   // ! TODO: After that, start working on MudaeAutoRoll
   // TODO: See if you can make this modular using @require from a github page. Not really, you require on public variables a lot
