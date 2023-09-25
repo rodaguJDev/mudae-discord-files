@@ -795,6 +795,8 @@ let page, mudaegui, mudaelogs;
   mudaegui = new MudaeGUI();
   mudaelogs = mudaegui.mudaelogs;
   
+  /* ! TODO: PLAN out your entire code again, like explaining how everything will work.
+  You're strugling with moving on with your code knowing you're gonna change everything again.*/
   /*
   I plan on making the code look like this:
   the new page should determine token and debug_mode
@@ -815,6 +817,7 @@ let page, mudaegui, mudaelogs;
   // const mudaeautomessage = new MudaeAutoMessage();
 
   mudaelogs.createDebugLog("Debug logs enabled");
+  // TODO: Add an Opacity slider to the GUI
   // ! TODO: Continue working on MudaeConfigs
   // ! TODO: Make the userscript fetch the code from github using @require, that way we do not have to sync like that. That does make it so any push will directly affect discord, for that, create a branch called "indev" that will take those merges, and after all is done, just merge "indev" to "main"
   // ! TODO: After that, start working on MudaeAutoRoll
@@ -831,8 +834,7 @@ let page, mudaegui, mudaelogs;
 
 // TODO: Claim anything that is wished by someone (make it optional)
 // TODO: create a "Series" wishlist filter so that if it is from a specific series it claims
-// TODO: Finish the "GUI" element so you don't have to edit the code to modify configs
-// TODO: Fix Indentation
+// TODO: Finish the "GUI" element so you don't have to edit the code to modify confi
 
 //? GUI Elements:
 //* Automation
@@ -861,3 +863,31 @@ let page, mudaegui, mudaelogs;
 //? [A list of available harems to claim in the moment]
 //* Logs
 //? Console (UL)
+
+/*
+Code Plan:
+const pg = new Page();
+const gui = new MudaeGUI(pg);
+const mAutomation = new MudaeAutomations();
+gui.injectModule(mAutomation, "Automations");
+const mLogs = new MudaeLogs();
+gui.injectModule(mLogs, "Logs");
+gui.loadSettings();
+
+DOCUMENTATION
+Class: Page
+ + Runs checks to see if page is valid
+ + Takes care of localStorage
+Class: Discord
+ + Deals with integration to Discord, such as message reading, reacting and sending.
+Abstract Class: GUIBase
+ + Handles GUI Controls and drag.
+Class: MudaeGUI
+ + Loads the GUI html / CSS
+Class: MudaeOptions
+ + Deals with loading and saving from the GUI.
+ + Might put it within MudaeGUI depending on simplicity
+Abstract Class: MudaeModule
+ + Constructor that is the base to handle: category name; category HTML; option saving to LS
+ + The classes extending from this will be MudaeAutomation, MudaeLogs, etc.
+*/
