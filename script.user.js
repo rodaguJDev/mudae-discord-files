@@ -880,10 +880,9 @@ Class: Page
  + Takes care of localStorage
 Class: Discord
  + Deals with integration to Discord, such as message reading, reacting and sending.
-Abstract Class: GUIBase
- + Handles GUI Controls and drag.
 Class: MudaeGUI
  + Loads the GUI html / CSS
+ + Handles GUI Controls and drag.
 Class: MudaeOptions
  + Deals with loading and saving from the GUI.
  + Might put it within MudaeGUI depending on simplicity
