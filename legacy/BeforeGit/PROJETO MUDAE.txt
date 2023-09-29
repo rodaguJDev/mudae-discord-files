@@ -1,0 +1,28 @@
+$h -> Vai mostra apenas homi (ou husbando se quiser usa os termos dos cara)
+$w -> Vai mostra apenas muite (ou waifu se quiser usa os termos dos cara)
+$m -> Vai mostra apenas homi e muie
+
+$daily -> vc ganha 1 roll por dia
+$rolls -> reseta todos os rolls q vc ja deu
+$tu -> mostra a quantidade de $m/$w/$h q vc pode usar, kakera power, e $dk
+$dk ($dailykakera) 
+$k -> kakera tutorial
+
+$limroul 9000 7000 9000 7000
+$limroul 9000 7000 9000 7000 //row luck? (cheat)
+
+to find eternium fisk heroes: martian, vision at bedrock level surrounded by eternium stone break with the tug pickaxe
+Dward Star alloy: at mesa (or desert) below level 16
+Check the NBT Whitelist file from projecte
+TCC Idea: App to manage group assignments (like discord, but you can create multiple assignment groups, native support to filetypes and previews,
+an assignment list, a checklist for each assignment, a trello (or copy of) integration etc.
+
+
+$daily & $dk delays Documentation
+Monday 31/07  |  $daily resets at 13:14; $dk resets at 16:21
+Tuesday 01/08  |  $daily resets at 17:32; $dk resets at 17:32
+Theory: it resets 20 hours after you run it
+
+
+
+Also, don't forget to fix your bookmark bar, it's so scuffed lmao, don't even think 'bout going to linux without it fixed

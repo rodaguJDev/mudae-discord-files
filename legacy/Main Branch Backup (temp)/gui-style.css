@@ -1,0 +1,208 @@
+.mudae-gui * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-size: 12pt;
+}
+
+.mudae-gui *::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.mudae-gui *::-webkit-scrollbar-thumb {
+    background-color: gray;
+    border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    -ms-border-radius: 10px;
+    -o-border-radius: 10px;
+}
+
+.mudae-gui {
+    position: fixed;
+    display: flex;
+    user-select: none;
+    width: min(75vw, 600px);
+    height: min(50vw, 400px);
+    z-index: 1000;
+    overflow: hidden;
+
+    border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    -ms-border-radius: 10px;
+    -o-border-radius: 10px;
+}
+
+.mudae-sidebar {
+    background-color: #E6E6E6;
+    height: 100%;
+    width: 25%;
+    overflow: auto;
+}
+
+.mudae-sidebar-content {
+    padding: 6px 10px;
+}
+
+.mudae-sidebar-header {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: 1.5rem;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.mudae-gui-categories {
+    display: flex;
+    margin-top: 10px;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mudae-button-category {
+    white-space: nowrap;
+    overflow: hidden;
+    min-width: 130px;
+
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1rem;
+    padding: 8px 12px;
+    cursor: pointer;
+    background-color: white;
+
+    border: 0;
+    border-radius: 5px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -ms-border-radius: 5px;
+    -o-border-radius: 5px;
+}
+
+.mudae-button-category:active {
+    background-color: hsl(0, 0%, 80%);
+}
+
+.mudae-gui-categories .mudae-selected-button {
+    border: 3px solid blue;
+}
+
+/* window controls */
+.black-line {
+    width: 15px;
+    height: 2px;
+    background-color: black;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    -webkit-transform: translateY(-50%);
+    -moz-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    -o-transform: translateY(-50%);
+}
+
+.mudae-gui-controls {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.mudae-close-button,
+.mudae-minimize-button {
+    cursor: pointer;
+    width: 15px;
+    height: 15px;
+}
+
+.line1,
+.line2 {
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    -webkit-transform: translateY(-50%) rotate(45deg);
+    -moz-transform: translateY(-50%) rotate(45deg);
+    -ms-transform: translateY(-50%) rotate(45deg);
+    -o-transform: translateY(-50%) rotate(45deg);
+}
+
+.line2 {
+    transform: translateY(-50%) rotate(-45deg);
+    -webkit-transform: translateY(-50%) rotate(-45deg);
+    -moz-transform: translateY(-50%) rotate(-45deg);
+    -ms-transform: translateY(-50%) rotate(-45deg);
+    -o-transform: translateY(-50%) rotate(-45deg);
+}
+
+.mudae-minimized {
+    transition: .1s linear;
+    transform: translate(100vw, 100vh) scale(0, 0);
+
+    -webkit-transform: translate(100vw, 100vh) scale(0, 0);
+    -moz-transform: translate(100vw, 100vh) scale(0, 0);
+    -ms-transform: translate(100vw, 100vh) scale(0, 0);
+    -o-transform: translate(100vw, 100vh) scale(0, 0);
+    -webkit-transition: .1s linear;
+    -moz-transition: .1s linear;
+    -ms-transition: .1s linear;
+    -o-transition: .1s linear;
+}
+
+/* Category manager */
+.mudae-categories {
+    flex: 1;
+}
+
+.mudae-category {
+    display: none;
+}
+
+.mudae-category-header {
+    display: block;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1.5em;
+    font-weight: 900;
+    padding: 10px;
+}
+
+.mudae-current-category {
+    height: 100%;
+    width: 100%;
+    background-color: #B3B3B3;
+    display: flex;
+    flex-direction: column;
+}
+
+.mudae-category-container {
+    flex-grow: 1;
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* Wishlist */
+
+/* Logs */
+#mudae-console {
+    list-style: none;
+    font-family: Arial, Helvetica, sans-serif;
+    user-select: text;
+    background-color: hsl(0, 0%, 99%);
+    border: 1px solid #000;
+    border-radius: 10px;
+    width: calc(100% - 20px);
+    min-height: 100%;
+    margin-left: 10px;
+
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    -ms-border-radius: 10px;
+    -o-border-radius: 10px;
+}
+
+#mudae-console li {
+    white-space: pre-wrap;
+}
