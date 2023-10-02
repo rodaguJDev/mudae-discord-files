@@ -1,1 +1,1 @@
-// TODO
+// TODO: See if you can make it run both through a script tag on any website, or userscript
