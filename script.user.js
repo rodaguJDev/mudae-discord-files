@@ -7,27 +7,28 @@ class FetchRequests {
       return;
     }
 
-    // Rewrite without .then
-    return await fetch(url)
-    .then(response => {
+    try {
+      const response = await fetch(url);
       if (!response.ok) {
-        throw Error(`Mudae GUI - Could not fetch from URL ${url}`);
+        throw Error(`Fetching code from ${url} failed.`)
       }
-      return response;
-    })
-    .then(data => {
-      return data.text();
-    })
-    .catch(error => {
-      throw Error(`Mudae GUI - An error occurred: ${error.message}`);
-    });
+      const code = await response.text();
+    } 
+    catch {
+      throw Error(`Fetching code from ${url} failed.`)
+    }
+    
+    console.log(code)
   }
 }
+
 class Assets {
   constructor() {
     // Yeah, this will be ran to import the assets and such.
   }
 }
+
+FetchRequests.importCode("");
 // (function() {
 //   'use strict';
 //   const userscriptEnviroment = typeof GM !== "undefined"
