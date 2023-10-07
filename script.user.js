@@ -28,7 +28,7 @@ class Assets {
   }
 }
 
-FetchRequests.importCode("");
+FetchRequests.importCode("yest");
 // (function() {
 //   'use strict';
 //   const userscriptEnviroment = typeof GM !== "undefined"
