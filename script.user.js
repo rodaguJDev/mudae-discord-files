@@ -1,7 +1,7 @@
 // TODO: See if you can make it run both through a script tag on any website, or userscript
 
 class FetchRequests {
-  static async getTextContent(url) {
+  static async fetchPageText(url) {
     try {
       const response = await fetch(url);
       if (!response.ok) {
@@ -18,10 +18,7 @@ class FetchRequests {
       debugger;
       return;
     }
-    let code = this.fetchPageTexr(url);
-
-    
-    
+    let code = await this.fetchPageText(url);
     const script = document.createElement("script");
     script.innerHTML = code;
     document.head.append(script);
@@ -34,7 +31,10 @@ class Assets {
   }
 }
 
-FetchRequests.importCode("https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/refactoring-code-base/modules/page/script.js");
+(async function() {
+  await FetchRequests.importCode("https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/refactoring-code-base/modules/page/script.js");
+  new Page();
+})();
 
 // (function() {
 //   'use strict';
