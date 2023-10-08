@@ -1,5 +1,5 @@
 class Page {
     constructor() {
-        throw new Error("Not Implemented Exception")
+        throw "Implementation Error: Class was not implemented."
     }
 }

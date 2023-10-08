@@ -1,4 +1,4 @@
-if (typeof GM === "undefined" || typeof GM.getResourceText === "undefined") {
-  console.log("AAAAAAAAAAAAAAAAAAAAAAA");
+if (typeof GM === "undefined") {
+  console.log("GM IS NOT FOUND");
 }
-console.log("YEEEEEEEEEE")
+console.log(`YAAAY GM IS FOUND ${GM.requires[0]}`)
