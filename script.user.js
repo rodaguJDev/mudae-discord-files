@@ -191,25 +191,3 @@ if (typeof GM === "undefined") {
 
   // Actual Code here, at first will just be debugging for discord and such.
 })();
-
-
-
-// HOOLY SHIT VIOLENTMONKEY HAD EVERYTHING I NEEDEDBUILT IN
-// Besides @resource and @require for modules, they have a BUILT IN LOCAL STORAGE (getValue + setValue), AND A STYLE IMPORTER (GM.addStyle). THey also have useful stuff like GM.setClipboard and GM.openInTab
-// The only issue I'll have now is not having these features in an actual <script> import, but WHATEVER, if there is no GM, I'll create a mock class and set GM to it.
-// The documentation doesn't mention it but GM.info includes a list of Requires, that's awesome! not that useful in my case, but still awesome.
-
-/*
-class MockGM {
-  static setClipboard(value) {
-    console.log("Clipboard has changed... jk lol");
-  }
-}
-
-if (typeof GM === "undefined") {
-  GM = MockGM;
-}
-
-console.log(GM);
-
-Take inspiration from this*/

@@ -18,6 +18,6 @@ class Discord {
   }
   constructor(token) {
     this.token = this.getToken();
-    throw "Implementation Error: Class was not implemented."
+    alert(this.token);
   }
 }
