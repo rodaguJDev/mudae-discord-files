@@ -184,8 +184,8 @@ if (typeof GM === "undefined") {
   }
 
   // Actual Code here, at first will just be debugging for discord and such.
-console.log(GM.getResourceText("guicss"));
 })();
+console.log(GM.getResourceText("guicss"));
 
 
 
