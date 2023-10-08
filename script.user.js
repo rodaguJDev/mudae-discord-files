@@ -1,18 +1,24 @@
 // ==UserScript==
-// @name        Mudae Script - discord
+// @name        Mudae Script V2 INDEV - discord
 // @namespace   Violentmonkey Scripts
 // @match       https://discord.com/channels/*
-// @version     1.0
+// @version     2.0
 // @author      rodaguJ
-// @description Auto Claim desired mudae characters as soon as they show up
-// @grant       GM.getResourceText
+// @description GUI with utilities for the MUDAE bot
 // @require     http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js
 // @require     https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/refactoring-code-base/modules/page/script.js
 // @require     https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/refactoring-code-base/modules/discord/script.js
 // @require     https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/refactoring-code-base/modules/mudae-gui/script.js
 // @require     https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/refactoring-code-base/modules/mudae-modules/script.js
-// @resource    guihtml https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/refactoring-code-base/gui.html
-// @resource    guicss https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/refactoring-code-base/gui-style.css
+// @resource    guihtml https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/refactoring-code-base/modules/mudae-gui/gui.html
+// @resource    guicss https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/refactoring-code-base/modules/mudae-gui/guiStyle.css
+// @grant       GM.addStyle
+// @grant       GM.notification
+// @grant       GM.getResourceText
+// @grant       GM.getValue
+// @grant       GM.setValue
+// @grant       GM.deleteValue
+// @grant       GM.listValues
 // ==/UserScript==
 // ! TODO: CHANGE refactoring-code-base TO main
 class RequestUtils {
@@ -98,7 +104,7 @@ class MockViolentMonkey {
     }
 
     // Emmulating the Metadata
-    const ASSETS_ROOT = LOCAL_FILE_DEBUG ? RequestUtils.getRelativeURL("/") : `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/`;
+    const ASSETS_ROOT = USE_LOCAL_ASSETS ? RequestUtils.getRelativeURL("/") : `https://raw.githubusercontent.com/rodaguJDev/mudae-discord-files/${BRANCH}/`;
     this.requires = [
       `${ASSETS_ROOT}modules/page/script.js`,
       `${ASSETS_ROOT}modules/discord/script.js`,
@@ -170,7 +176,7 @@ class MockViolentMonkey {
   }
 }
 
-const LOCAL_FILE_ASSETS = true;
+const USE_LOCAL_ASSETS = true;
 const BRANCH = "refactoring-code-base";
 
 if (typeof GM === "undefined") {
@@ -185,7 +191,6 @@ if (typeof GM === "undefined") {
 
   // Actual Code here, at first will just be debugging for discord and such.
 })();
-console.log(GM.getResourceText("guicss"));
 
 
 
